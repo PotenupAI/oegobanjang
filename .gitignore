@@ -17,7 +17,9 @@ venv/
 # Environment Variables
 # =========================
 .env
+*.env
 .env.*
+!.env.example
 
 # =========================
 # Jupyter / Research
