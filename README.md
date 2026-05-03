@@ -80,7 +80,7 @@ FastAPI 백엔드 서버 하나 안에서 일반 API와 LangGraph/RAG/Agent Runt
 
 ```bash
 cd backend
-uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
 ---
