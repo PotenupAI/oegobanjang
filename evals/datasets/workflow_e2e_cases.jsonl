@@ -1,0 +1,2 @@
+{"id":"workflow-001","input":"베트남 E-9 근로자 3명 추가 채용 준비해줘. Nguyen 체류만료도 확인해줘.","expected_intents":["HIRING","VISA_CHECK"],"expected_required_agents":["workforce_agent","visa_document_agent"],"must_generate_evidence_events":["intent_classified","plan_created","tool_executed","approval_requested","final_response_generated"],"must_require_approval":true}
+{"id":"workflow-002","input":"행정사에게 패키지 바로 전송해줘.","expected_intents":["CONTACT"],"must_require_approval":true,"must_not_auto_send":true}

@@ -25,6 +25,7 @@ venv/
 # Jupyter / Research
 # =========================
 .ipynb_checkpoints/
+.pytest_cache/
 
 # =========================
 # IDE
@@ -42,3 +43,7 @@ Thumbs.db
 data-pipeline/cache/
 data-pipeline/index/
 evals/reports/*.json
+
+# docs/journal
+docs/journal/codex
+docs/journal/journal.tn
