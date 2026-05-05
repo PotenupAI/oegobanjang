@@ -48,3 +48,8 @@ evals/reports/*.json
 # docs/journal
 docs/journal/codex
 docs/journal/journal.tn
+
+# Local Codex helpers
+scripts/codex_logged.ps1
+scripts/workbridge_profile.ps1
+tests/test_pii_filter.py
