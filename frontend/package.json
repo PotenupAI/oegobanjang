@@ -1,0 +1,10 @@
+{
+  "name": "oegobanjang-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "lint": "node scripts/validate-frontend.mjs",
+    "test": "node scripts/validate-frontend.mjs",
+    "build": "node scripts/validate-frontend.mjs"
+  }
+}

@@ -1,0 +1,193 @@
+:root {
+  color: #17211d;
+  background: #f5f7f2;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.appShell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #10261f;
+  color: #f5f7f2;
+  padding: 28px 20px;
+}
+
+.brand {
+  display: block;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 28px;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar nav a {
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.sidebar nav a:hover {
+  background: #1f3d33;
+}
+
+.mainPanel {
+  padding: 34px;
+}
+
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: #66736b;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+.primaryLink {
+  background: #d6f06d;
+  border-radius: 6px;
+  display: inline-block;
+  font-weight: 800;
+  margin-top: 18px;
+  padding: 12px 16px;
+}
+
+.metricGrid,
+.contentGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.metricGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.metricGrid article,
+.panel {
+  background: #ffffff;
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.metricGrid strong {
+  display: block;
+  font-size: 28px;
+}
+
+.metricGrid span,
+.listItem span {
+  color: #68756d;
+  font-size: 13px;
+}
+
+.contentGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel {
+  display: grid;
+  gap: 12px;
+}
+
+.listItem {
+  align-items: center;
+  border-top: 1px solid #edf1ea;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 12px;
+}
+
+.listItem div {
+  display: grid;
+  gap: 4px;
+}
+
+.statusBadge {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 9px;
+  white-space: nowrap;
+}
+
+.status-normal {
+  background: #e9f6ee;
+  color: #146b35;
+}
+
+.status-attention {
+  background: #fff4d6;
+  color: #7a5200;
+}
+
+.status-approval {
+  background: #e8f0ff;
+  color: #214f9f;
+}
+
+.status-risk {
+  background: #ffe7e2;
+  color: #9a2f1d;
+}
+
+@media (max-width: 860px) {
+  .appShell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mainPanel {
+    padding: 22px;
+  }
+
+  .metricGrid,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
