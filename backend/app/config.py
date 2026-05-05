@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     google_api_key: str | None = None
     anthropic_api_key: str | None = None
+    real_llm_enabled: bool = False
+    llm_provider: str = "openai"
+    llm_model: str = "gpt-5.5"
+    llm_timeout_seconds: float = 30.0
 
     # Security
     jwt_secret: str = "change-this-local-secret"
