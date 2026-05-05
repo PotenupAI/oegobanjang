@@ -29,3 +29,18 @@ export type EvidenceSummary = {
   summary: string;
   createdAt: string;
 };
+
+export type DashboardData = {
+  monthlyTasks: DashboardItem[];
+  workersNearExpiry: WorkerSummary[];
+  pendingApprovals: ApprovalSummary[];
+  recentEvidence: EvidenceSummary[];
+  source: "backend" | "mock_fallback";
+  error?: string;
+};
+
+export type AgentPreview = {
+  approvalRequired: boolean;
+  finalMessage: string;
+  evidenceEvents: EvidenceSummary[];
+};

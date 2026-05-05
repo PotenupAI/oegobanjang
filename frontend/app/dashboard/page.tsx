@@ -1,12 +1,19 @@
 import { StatusBadge } from "../../components/StatusBadge";
-import { monthlyTasks, pendingApprovals, recentEvidence, workersNearExpiry } from "../../features/dashboard/mockData";
+import { getDashboardData } from "../../lib/api";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const { monthlyTasks, pendingApprovals, recentEvidence, workersNearExpiry, source, error } =
+    await getDashboardData();
+
   return (
     <>
       <section className="pageHeader">
         <p className="eyebrow">관리자 대시보드</p>
         <h1>승인, 기한, 누락 서류를 한 화면에서 봅니다.</h1>
+        <span className="muted">
+          데이터 소스: {source === "backend" ? "backend API" : "mock fallback"}
+          {error ? ` · ${error}` : ""}
+        </span>
       </section>
 
       <section className="metricGrid" aria-label="업무 요약">
@@ -21,6 +28,10 @@ export default function DashboardPage() {
         <article>
           <strong>{pendingApprovals.length}</strong>
           <span>승인 대기</span>
+        </article>
+        <article>
+          <strong>{source === "backend" ? "API" : "MOCK"}</strong>
+          <span>현재 연결 상태</span>
         </article>
       </section>
 
