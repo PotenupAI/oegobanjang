@@ -28,10 +28,20 @@ dependencies = [
     "altair<5",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.3.0",
+    "langchain-chroma>=0.2.0",
+    "langgraph>=0.2.0",
+    "chromadb>=0.6.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg[binary]>=3.2.0",
+    "python-dotenv>=1.0.0",
     "pillow>=12.1.1",
     "optuna>=4.7.0",
     "mtcnn>=1.0.0",
     "mediapipe>=0.10.32",
+    "langchain-text-splitters>=0.3.0",
 ]
 
 [tool.uv.sources]
