@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+****************************************************************************************************
+* @source      : index.htm
+* @description : G4F index 페이지
+****************************************************************************************************
+* DATE         AUTHOR    DESCRIPTION
+*===================================================================================================
+* 2007-01-22   정연주          최초작성
+****************************************************************************************************
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="google-site-verification" content="f7pA8MaC1iAGcT1wBIGara9WJF_84arIUlPUXGMwTR0" />
+<title>Welcome to G4F of KOREA</title>
+<script type="text/javascript">
+//<![CDATA[
+var host = location.host;
+var now = new Date();
+var nowyear = now.getFullYear();
+var nowmonth = paddingDate(now.getMonth() + 1);
+var nowday =  paddingDate(now.getDate());
+var nowhours  = paddingDate(now.getHours());
+var nowminutes = paddingDate(now.getMinutes());
+var nowdatetime = nowyear+nowmonth+nowday+nowhours+nowminutes;
+var systemCheck = false;		//점검시 true로 변경
+
+if(systemCheck){
+	location.href = "/system_check.html";
+}else{
+	location.href = "https://" + host + "/index.jsp";
+}
+
+function paddingDate(day){
+	temp = day.toString();
+	if(temp.length < 2){
+		temp =  "0"+temp;
+	}
+	return temp;
+}
+//]]>
+</script>
+</head>
+<body>
+</body>
+</html>
