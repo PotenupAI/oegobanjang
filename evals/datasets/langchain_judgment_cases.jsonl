@@ -1,0 +1,2 @@
+{"id":"lc_new_hiring_report","input":"E-9 신규 채용 고용허가 절차 근거로 판단 리포트 만들어줘.","case_type":"new_hiring","input_state":{"company_id":"company_001","requested_headcount":3},"expected_used_tools":["retrieve_policy_context","assess_readiness"],"must_generate_report":true,"must_require_approval":true}
+{"id":"lc_document_readiness","input":"E-9 신규 채용 서류와 준비 상태를 확인해줘.","case_type":"new_hiring","input_state":{"company_id":"company_001"},"expected_used_tools":["retrieve_policy_context","assess_readiness"],"must_generate_report":true,"must_require_approval":true}

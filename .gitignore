@@ -42,6 +42,7 @@ Thumbs.db
 # Generated artifacts (regeneratable)
 data-pipeline/cache/
 data-pipeline/index/
+data-pipeline/processed/chroma_langchain/
 evals/reports/*.json
 
 # docs/journal
