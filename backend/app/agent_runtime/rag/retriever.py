@@ -83,6 +83,13 @@ class PolicyRetriever:
             score += min(tokens.count(token) for token in overlap) * 0.01
             title_tokens = set(tokenize(str(metadata.get("title", ""))))
             score += len(query_tokens & title_tokens) * 0.2
+            if _asks_for_official_basis(query_tokens):
+                evidence_grade = str(metadata.get("evidence_grade", "")).upper()
+                source_type = str(metadata.get("source_type", "")).lower()
+                if evidence_grade == "A" or source_type.startswith("official_"):
+                    score += 0.35
+                if source_type == "message_template":
+                    score -= 0.25
             result = {
                 **chunk,
                 "score": round(score, 6),
@@ -103,6 +110,12 @@ def _matches_filters(metadata: dict[str, Any], filters: dict[str, str]) -> bool:
         elif actual != expected:
             return False
     return True
+
+
+def _asks_for_official_basis(query_tokens: set[str]) -> bool:
+    if query_tokens & {"메시지", "템플릿", "패키지", "승인", "행정사", "전달"}:
+        return False
+    return bool(query_tokens & {"근거", "민원", "신청", "제출", "서류", "절차", "허가"})
 
 
 def retrieve_policy_documents(
