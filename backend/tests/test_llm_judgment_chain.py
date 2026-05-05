@@ -2,7 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from app.agent_runtime.llm.client import FakeJudgmentClient
+from app.config import get_settings
+from app.agent_runtime.llm.client import (
+    FakeJudgmentClient,
+    ProviderError,
+    RealProviderJudgmentClient,
+    build_judgment_client,
+    ensure_json_only,
+)
 from app.agent_runtime.llm.judgment_chain import run_judgment_chain
 from app.agent_runtime.llm.parser import parse_judgment_json
 from app.agent_runtime.llm.prompts import build_judgment_messages
@@ -156,3 +163,41 @@ def test_run_judgment_chain_blocks_guardrail_violating_llm_output() -> None:
     assert judgment.status == "blocked"
     assert judgment.blocked is True
     assert "government_portal_submission" in judgment.guardrail_notes
+
+
+def test_build_judgment_client_defaults_to_fake_without_feature_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("REAL_LLM_ENABLED", "false")
+    get_settings.cache_clear()
+
+    client = build_judgment_client(fallback_response_text=_valid_judgment_json())
+
+    assert isinstance(client, FakeJudgmentClient)
+    get_settings.cache_clear()
+
+
+def test_real_provider_client_masks_pii_before_provider_failure() -> None:
+    client = RealProviderJudgmentClient(
+        provider="openai",
+        model="gpt-5.5",
+        api_key=None,
+        timeout_seconds=30,
+    )
+
+    with pytest.raises(ProviderError):
+        client.generate_json(
+            [
+                {
+                    "role": "user",
+                    "content": "외국인등록번호 900101-1234567, 여권번호 M12345678 확인",
+                }
+            ]
+        )
+
+    assert client.last_messages is not None
+    assert "900101-1234567" not in str(client.last_messages)
+    assert "M12345678" not in str(client.last_messages)
+
+
+def test_ensure_json_only_rejects_provider_non_json() -> None:
+    with pytest.raises(ProviderError, match="non-JSON"):
+        ensure_json_only("natural language response")

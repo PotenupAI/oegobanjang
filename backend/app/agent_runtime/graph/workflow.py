@@ -121,7 +121,7 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
     judgment = None
     judgment_report = None
     if runtime_mode == "langchain_judgment" and status != "blocked" and not execution.get("guardrail_violations"):
-        from app.agent_runtime.llm.client import FakeJudgmentClient
+        from app.agent_runtime.llm.client import ProviderError, build_judgment_client, ensure_json_only
         from app.agent_runtime.llm.judgment_chain import run_judgment_chain
         from app.agent_runtime.rag.evidence_package import build_evidence_package
         from app.agent_runtime.reporting.report import build_basic_report
@@ -147,19 +147,71 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
             },
             evidence_chunk_ids=[chunk["chunk_id"] for chunk in evidence_package["retrieved_chunks"]],
         )
-        judgment = run_judgment_chain(
-            user_message=str(incoming.get("user_message") or ""),
-            detected_intents=detected_intents,
-            evidence_package=evidence_package,
-            client=FakeJudgmentClient(
-                response_text=_default_judgment_json(
+        try:
+            client = build_judgment_client(
+                fallback_response_text=_default_judgment_json(
                     request_id=work_item_id,
                     case_type=case_type,
                     detected_intents=detected_intents,
                     evidence_package=evidence_package,
                 )
-            ),
-        )
+            )
+            raw_judgment = ensure_json_only(
+                client.generate_json(
+                    [
+                        {
+                            "role": "user",
+                            "content": str(incoming.get("user_message") or ""),
+                        }
+                    ]
+                )
+            )
+            judgment = run_judgment_chain(
+                user_message=str(incoming.get("user_message") or ""),
+                detected_intents=detected_intents,
+                evidence_package=evidence_package,
+                client=_StaticJudgmentClient(raw_judgment),
+            )
+        except (ProviderError, ValueError) as exc:
+            append_event(
+                evidence_events,
+                work_item_id=work_item_id,
+                agent_id="judgment_node",
+                action_type="block",
+                event_type="block",
+                input_data={"runtime_mode": runtime_mode},
+                output_data={"reason": str(exc)},
+            )
+            status = "blocked"
+            judgment_error = {
+                "status": "blocked",
+                "reason": "llm_provider_error",
+                "message": str(exc),
+            }
+            return {
+                "request_id": incoming.get("request_id"),
+                "user_id": incoming.get("user_id"),
+                "company_id": incoming.get("company_id"),
+                "case_type": case_type,
+                "current_state": current_state,
+                "next_state": next_state,
+                "detected_intents": detected_intents,
+                "runtime_mode": runtime_mode,
+                "input_state": input_state,
+                "plan": plan,
+                "execution": execution,
+                "approval": approval,
+                "approval_required": approval["required"],
+                "final_response": {
+                    "status": "blocked",
+                    "approval_required": approval["required"],
+                    "message": "LLM 판단 생성 중 오류가 발생했습니다.",
+                    "error": judgment_error,
+                },
+                "evidence_events": evidence_events,
+                "status": "blocked",
+                "reason": "llm_provider_error",
+            }
         judgment_report = build_basic_report(judgment)
         append_event(
             evidence_events,
@@ -265,6 +317,14 @@ def _dedupe(values: list[str]) -> list[str]:
         seen.add(value)
         deduped.append(value)
     return deduped
+
+
+class _StaticJudgmentClient:
+    def __init__(self, response_text: str) -> None:
+        self.response_text = response_text
+
+    def generate_json(self, messages: list[dict[str, str]]) -> str:
+        return self.response_text
 
 
 def _default_judgment_json(

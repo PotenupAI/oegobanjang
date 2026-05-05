@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import get_settings
 from app.main import create_app
 from app.services.agent_service import run_agent_request
 
@@ -237,3 +238,28 @@ def test_langchain_judgment_runtime_uses_rag_evidence_package() -> None:
     event_types = [event["event_type"] for event in result["evidence_events"]]
     assert "rag_retrieved" in event_types
     assert result["judgment"]["evidence_summary"][0]["source_id"] != "workflow_runtime_context"
+
+
+def test_real_llm_feature_flag_blocks_provider_error_without_auto_completion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("REAL_LLM_ENABLED", "true")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    get_settings.cache_clear()
+
+    result = run_agent_request(
+        {
+            "request_id": "req_real_provider_error",
+            "runtime_mode": "langchain_judgment",
+            "user_message": "E-9 신규 채용 판단 리포트 만들어줘.",
+            "case_type": "new_hiring",
+            "input_state": {"company_id": "company_001", "requested_headcount": 3},
+        }
+    )
+
+    assert result["status"] == "blocked"
+    assert result["reason"] == "llm_provider_error"
+    assert result["approval"]["status"] == "PENDING"
+    assert result["final_response"]["status"] == "blocked"
+    assert any(event["event_type"] == "block" for event in result["evidence_events"])
+    get_settings.cache_clear()
