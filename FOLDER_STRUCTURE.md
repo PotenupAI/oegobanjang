@@ -2,6 +2,7 @@ oegobanjang
 ├─ AGENTS.md                         # 모든 AI/사람 개발자가 공통으로 따라야 하는 작업 규칙
 ├─ CLAUDE.md                         # Claude Code 사용자가 가장 먼저 읽는 루트 지침
 ├─ README.md                         # 프로젝트 소개, 실행 방법, 전체 구조 설명
+├─ taxonomy.md                       # 프로젝트 전체 분류값/택소노미 통합 색인
 ├─ .gitignore                        # Git에 올리지 않을 파일/폴더 목록
 ├─ .env                              # 실제 로컬 환경변수 파일, Git에 올리면 안 됨
 ├─ .env.example                      # 팀원이 참고할 환경변수 예시 파일, Git에 올림
@@ -90,6 +91,9 @@ oegobanjang
 │  │  │  │     ├─ evidence_logger.py # Evidence Log 후보 이벤트 생성
 │  │  │  │     └─ final_response.py  # 최종 응답 생성
 │  │  │  │
+│  │  │  ├─ middleware/              # router/LLM 전 입력 보호용 미들웨어
+│  │  │  │  └─ pii_filter.py         # 외국인등록번호/여권번호/전화번호 마스킹
+│  │  │  │
 │  │  │  ├─ agents/                  # 업무별 전문 AI Agent
 │  │  │  │  ├─ hiring_agent.py       # 인력 확보, 쿼터 판단, 채용 요청 처리
 │  │  │  │  ├─ contact_agent.py      # 다국어 메시지 생성, 응답 해석
@@ -109,6 +113,13 @@ oegobanjang
 │  │  │  │  ├─ visa_risk_tool.py     # 체류 만료일, 리스크 수준 판단
 │  │  │  │  └─ handoff_package_tool.py# 행정사/노무사 전달 패키지 초안 생성
 │  │  │  │
+│  │  │  ├─ langchain_runtime/       # LangChain adapter 격리 계층, safe tool, fake runner
+│  │  │  │  ├─ documents.py          # chunk JSONL을 LangChain-compatible Document로 변환
+│  │  │  │  ├─ vectorstore.py        # persistent index artifact builder
+│  │  │  │  ├─ tools.py              # retrieve_policy_context, assess_readiness safe tool registry
+│  │  │  │  ├─ judgment_agent.py     # fake LangChain judgment runner
+│  │  │  │  └─ schemas.py            # adapter 내부 Pydantic schema
+│  │  │  │
 │  │  │  └─ schemas/                 # Agent 내부 데이터 스키마
 │  │  │     ├─ state.py              # Agent State 세부 타입
 │  │  │     ├─ tool.py               # Tool 실행 결과 스키마
@@ -124,7 +135,8 @@ oegobanjang
 │  │  ├─ test_agent_workflow.py      # Agent Runtime 전체 흐름 테스트
 │  │  ├─ test_guardrails.py          # 금지/승인 필요 작업 가드레일 테스트
 │  │  ├─ test_approvals.py           # 승인 생성/처리 테스트
-│  │  └─ test_evidence.py            # Evidence Log 저장/조회 테스트
+│  │  ├─ test_evidence.py            # Evidence Log 저장/조회 테스트
+│  │  └─ test_eval_runner.py         # eval runner의 runtime assertion 테스트
 │  │
 │  └─ migrations/                    # Alembic DB 마이그레이션
 │     ├─ env.py                      # Alembic 실행 환경 설정
@@ -132,26 +144,35 @@ oegobanjang
 │     └─ versions/                   # 실제 마이그레이션 파일 저장 위치
 │
 ├─ frontend/                         # Next.js / React 프론트엔드
+│  ├─ package.json                   # 프론트엔드 lint/test/build 검증 스크립트 정의
 │  ├─ app/                           # Next.js App Router 라우트
-│  │  ├─ dashboard/                  # 이번 달 처리 필요 업무, 알림, 요약 화면
-│  │  ├─ workers/                    # 외국인 근로자 목록/상세 화면
-│  │  ├─ hiring/                     # 신규 채용 요청, 쿼터 확인 화면
-│  │  ├─ visa/                       # 비자 만료, 체류 리스크 관리 화면
-│  │  ├─ documents/                  # 서류 체크리스트, 누락 서류 화면
-│  │  ├─ contacts/                   # 다국어 메시지 초안/응답 관리 화면
-│  │  ├─ approvals/                  # 관리자 승인 대기/승인/거절 화면
-│  │  └─ evidence/                   # 감사 로그, 판단 근거 조회 화면
+│  │  ├─ layout.tsx                  # 관리자 화면 공통 shell 적용 루트 레이아웃
+│  │  ├─ page.tsx                    # dashboard 진입 화면
+│  │  ├─ styles.css                  # MVP dashboard 공통 스타일
+│  │  ├─ dashboard/page.tsx          # 이번 달 처리 필요 업무, 알림, 요약 화면
+│  │  ├─ workers/page.tsx            # 외국인 근로자 목록/상세 화면
+│  │  ├─ hiring/page.tsx             # 신규 채용 요청, 쿼터 확인 화면
+│  │  ├─ visa/page.tsx               # 비자 만료, 체류 리스크 관리 화면
+│  │  ├─ documents/page.tsx          # 서류 체크리스트, 누락 서류 화면
+│  │  ├─ contacts/page.tsx           # 다국어 메시지 초안/응답 관리 화면
+│  │  ├─ approvals/page.tsx          # 관리자 승인 대기/승인/거절 화면
+│  │  └─ evidence/page.tsx           # 감사 로그, 판단 근거 조회 화면
 │  │
 │  ├─ components/                    # 공통 UI 컴포넌트
+│  │  ├─ AppShell.tsx                # 사이드바와 메인 패널 공통 레이아웃
+│  │  └─ StatusBadge.tsx             # 업무 상태 badge 컴포넌트
 │  ├─ features/                      # 도메인별 프론트 기능 모듈
-│  │  ├─ dashboard/                  # 대시보드 관련 컴포넌트/로직
+│  │  ├─ dashboard/mockData.ts       # dashboard mock 업무/승인/Evidence 데이터
 │  │  ├─ workers/                    # 근로자 관리 관련 컴포넌트/로직
 │  │  ├─ approvals/                  # 승인 처리 관련 컴포넌트/로직
 │  │  └─ evidence/                   # Evidence Log 관련 컴포넌트/로직
 │  ├─ lib/
 │  │  ├─ api.ts                      # 백엔드 API 호출 클라이언트
 │  │  └─ constants.ts                # 공통 상수
-│  └─ types/                         # 프론트엔드 TypeScript 타입 정의
+│  ├─ types/                         # 프론트엔드 TypeScript 타입 정의
+│  │  └─ index.ts                    # dashboard/approval/evidence 공통 타입
+│  └─ scripts/
+│     └─ validate-frontend.mjs       # route 존재와 민감정보 마스킹을 확인하는 최소 검증 스크립트
 │
 ├─ data-pipeline/                    # RAG 데이터 수집/전처리 파이프라인
 │  ├─ crawlers/
@@ -186,23 +207,42 @@ oegobanjang
 │  ├─ DB_SCHEMA.md                   # 주요 DB 테이블 설계
 │  ├─ DECISIONS.md                   # 기술/제품 의사결정 기록
 │  └─ HANDOFF.md                     # 팀원/AI 에이전트에게 넘길 작업 인수인계 문서
+│  ├─ legacy/phase-harness/          # 예전 phase 기반 하네스 아카이브
+│  │  ├─ README.md                   # 아카이브 목적과 현재 구조 대응 설명
+│  │  ├─ ENGINEERING_PLAN.md         # 예전 Phase 1C/2A/3 의사결정 기록
+│  │  ├─ PHASE3_REVIEW_NOTES.md      # Phase 3 재설계 검토 노트
+│  │  ├─ PHASE_TO_MISSION_MAPPING.md # 예전 phase와 현재 mission 대응표
+│  │  ├─ REMAINING_EXECUTION.md      # 예전 phase 실행 순서 메모
+│  │  └─ phases/mvp/*.md             # 예전 phase 파일 원문 보관
+│  └─ superpowers/plans/             # Codex 실행용 상세 구현 계획
+│     └─ 2026-05-06-rag-source-and-workforce-agent-hardening.md # RAG 소스/인력 확보 에이전트 하드닝 계획
 │
 ├─ missions/                         # AI/팀원에게 줄 작업 단위
 │  ├─ README.md                      # mission 작성 규칙, active/completed 사용법
 │  ├─ active/                        # 현재 진행할 작업 지시서
-│  │  ├─ 001-agent-runtime-skeleton.md# Agent Runtime 뼈대 구현 미션
-│  │  ├─ 002-rag-indexing.md         # RAG 인덱싱 파이프라인 구현 미션
-│  │  ├─ 003-approval-evidence-log.md# 승인/Evidence Log 구현 미션
-│  │  ├─ 004-backend-core-api.md     # FastAPI 핵심 API 구현 미션
-│  │  └─ 005-frontend-dashboard.md   # 프론트 대시보드 구현 미션
+│  │  └─ .gitkeep                    # active mission이 없을 때 폴더 보존
 │  └─ completed/                     # 완료된 mission 보관
+│     ├─ 001-agent-runtime-skeleton.md# Agent Runtime 뼈대 구현 완료 미션
+│     ├─ 002-rag-indexing.md         # RAG 인덱싱 파이프라인 구현 완료 미션
+│     ├─ 003-approval-evidence-log.md# 승인/Evidence Log 구현 완료 미션
+│     ├─ 004-backend-core-api.md     # FastAPI 핵심 API 구현 완료 미션
+│     ├─ 005-frontend-dashboard.md   # 프론트 대시보드 구현 완료 미션
+│     ├─ 006-workflow-audit-hardening.md # Agent Runtime 감사 추적 강화 완료 미션
+│     ├─ 007-frontend-api-integration.md # 프론트엔드 API 연동 완료 미션
+│     ├─ 008-rag-evidence-package.md # RAG 검색 결과 Evidence Package 표준화 완료 미션
+│     ├─ 009-llm-judgment-json-chain.md # Prompt, JSON schema, parser, fake LLM 판단 체인 완료 미션
+│     ├─ 010-risk-report-generation.md # 위험도 분류와 기본 리포트 생성 완료 미션
+│     ├─ 011-judgment-runtime-mode.md # 선택형 판단 리포트 runtime mode 연결 완료 미션
+│     ├─ 012-langchain-judgment-adapter.md # LangChain 1.0 safe tool adapter 완료 미션
+│     └─ 013-real-llm-provider-integration.md # 실제 LLM provider feature-flag 연결 완료 미션
 │
 ├─ evals/                            # 하네스 평가 데이터
 │  ├─ datasets/
 │  │  ├─ intent_router_cases.jsonl   # 의도 분류 평가 데이터
 │  │  ├─ rag_retrieval_cases.jsonl   # RAG 검색 정확도 평가 데이터
 │  │  ├─ safety_guardrail_cases.jsonl# 금지/승인 필요 작업 평가 데이터
-│  │  └─ workflow_e2e_cases.jsonl    # 전체 워크플로우 E2E 평가 데이터
+│  │  ├─ workflow_e2e_cases.jsonl    # 전체 워크플로우 E2E 평가 데이터
+│  │  └─ langchain_judgment_cases.jsonl # LangChain adapter fake 판단 평가 데이터
 │  ├─ expected/                      # 기대 출력값 저장
 │  ├─ reports/                       # 평가 실행 결과 리포트 저장
 │  └─ README.md                      # eval 실행 방법과 평가 기준 설명
@@ -228,7 +268,8 @@ oegobanjang
 │  ├─ run_agent_tests.sh             # backend/app/agent_runtime 전용 테스트 실행
 │  ├─ run_frontend_tests.sh          # 프론트 lint/build/test 실행
 │  ├─ run_evals.py                   # evals 데이터셋 기반 평가 실행
-│  └─ ingest_rag_docs.py             # RAG 문서 적재 실행 스크립트
+│  ├─ ingest_rag_docs.py             # RAG 문서 적재 실행 스크립트
+│  └─ build_langchain_rag_index.py   # LangChain-compatible RAG index artifact 생성
 │
 ├─ infra/
 │  ├─ nginx/                         # Nginx reverse proxy 설정

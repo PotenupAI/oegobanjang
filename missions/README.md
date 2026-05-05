@@ -73,8 +73,22 @@ missions/
 
 | 파일 | 목적 |
 |---|---|
+| 없음 | 현재 active mission 없음 |
+
+## 7. 완료된 Mission 목록
+
+| 파일 | 목적 |
+|---|---|
 | `001-agent-runtime-skeleton.md` | Agent Runtime 최소 실행 흐름 |
 | `002-rag-indexing.md` | RAG 데이터 수집/전처리/인덱싱 |
 | `003-approval-evidence-log.md` | 승인 흐름과 Evidence Log |
 | `004-backend-core-api.md` | FastAPI 핵심 API |
 | `005-frontend-dashboard.md` | 관리자 대시보드 |
+| `006-workflow-audit-hardening.md` | Agent Runtime 감사 추적 강화 |
+| `007-frontend-api-integration.md` | 프론트엔드 API 연동 |
+| `008-rag-evidence-package.md` | RAG 검색 결과를 LLM 입력 Evidence Package로 표준화 |
+| `009-llm-judgment-json-chain.md` | Prompt, JSON schema, parser, fake LLM 판단 체인 |
+| `010-risk-report-generation.md` | 위험도 분류와 기본 리포트 생성 |
+| `011-judgment-runtime-mode.md` | 선택형 판단 리포트 runtime mode 연결 |
+| `012-langchain-judgment-adapter.md` | LangChain 1.0 safe tool adapter |
+| `013-real-llm-provider-integration.md` | 실제 LLM provider feature-flag 연결 |

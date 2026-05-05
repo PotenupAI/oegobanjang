@@ -1,4 +1,4 @@
-# Observability
+# 관측성
 
 ## 1. 목적
 
@@ -12,13 +12,20 @@
 
 모든 로그에는 가능하면 아래 값을 포함한다.
 
+- timestamp
+- work_item_id
 - request_id
 - user_id
 - company_id
 - worker_id
+- agent_id
 - agent_name
 - step_name
+- action_type
 - tool_name
+- confidence
+- human_override
+- evidence_chunk_ids
 
 ---
 
@@ -53,6 +60,7 @@
 - query
 - top_k
 - returned_source_ids
+- evidence_chunk_ids
 - evidence_grade
 - retrieval_latency_ms
 
@@ -82,3 +90,5 @@
 - 금지 작업 요청은 safety event로 기록한다.
 - approval_required 작업은 자동 실행하지 않고 pending 상태로 기록한다.
 - Evidence Log 누락은 장애로 본다.
+- Audit log는 append-only event source로 기록한다.
+- 공통 이벤트 필드는 `docs/EVIDENCE_LOG_SCHEMA.md`를 따른다.
