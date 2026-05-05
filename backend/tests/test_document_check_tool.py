@@ -32,3 +32,24 @@ def test_calculate_missing_documents_requires_case_type() -> None:
 
     assert result["status"] == "FAILED"
     assert result["error"] == "case_type is required"
+
+
+def test_calculate_missing_documents_accepts_db_document_state() -> None:
+    result = calculate_missing_documents(
+        {
+            "case_type": "new_hiring",
+            "visa_type": "E-9",
+            "db_document_state": {
+                "passport": {"status": "verified"},
+                "health_certificate": {"status": "submitted"},
+                "criminal_record": {"status": "missing"},
+            },
+        },
+        requirements_path=Path("data-pipeline/seed/document_requirements.csv"),
+    )
+
+    assert result["status"] == "SUCCESS"
+    assert result["input_snapshot"]["document_state_source"] == "db_document_state"
+    assert "passport" not in result["output"]["missing_documents"]
+    assert "health_certificate" not in result["output"]["missing_documents"]
+    assert "criminal_record" in result["output"]["missing_documents"]

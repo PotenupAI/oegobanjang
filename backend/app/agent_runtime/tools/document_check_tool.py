@@ -16,7 +16,13 @@ def calculate_missing_documents(
 ) -> dict[str, Any]:
     case_type = str(payload.get("case_type") or "").strip()
     visa_type = str(payload.get("visa_type") or payload.get("visa") or "E-9").strip()
-    held_documents = _normalize_documents(payload.get("held_documents") or payload.get("documents") or [])
+    held_documents = _normalize_documents(
+        payload.get("held_documents")
+        or payload.get("documents")
+        or payload.get("db_document_state")
+        or payload.get("document_state")
+        or []
+    )
 
     if not case_type:
         return _failed("case_type is required", {"case_type": case_type, "visa_type": visa_type})
@@ -35,6 +41,7 @@ def calculate_missing_documents(
             "case_type": case_type,
             "visa_type": visa_type,
             "held_documents": sorted(held_documents),
+            "document_state_source": _document_state_source(payload),
         },
         "output": {
             "case_type": case_type,
@@ -69,12 +76,33 @@ def _load_required_documents(path: Path, *, case_type: str, visa_type: str) -> d
 
 def _normalize_documents(value: Any) -> set[str]:
     if isinstance(value, Mapping):
-        return {str(key) for key, present in value.items() if bool(present)}
+        normalized: set[str] = set()
+        for key, present in value.items():
+            if isinstance(present, Mapping):
+                status = str(present.get("status") or present.get("state") or "").lower()
+                if status in {"held", "submitted", "available", "complete", "verified"}:
+                    normalized.add(str(key))
+                continue
+            if bool(present):
+                normalized.add(str(key))
+        return normalized
     if isinstance(value, str):
         return {value}
     if isinstance(value, Iterable):
         return {str(item) for item in value if str(item)}
     return set()
+
+
+def _document_state_source(payload: Mapping[str, Any]) -> str:
+    if payload.get("db_document_state") is not None:
+        return "db_document_state"
+    if payload.get("document_state") is not None:
+        return "document_state"
+    if payload.get("held_documents") is not None:
+        return "held_documents"
+    if payload.get("documents") is not None:
+        return "documents"
+    return "none"
 
 
 def _failed(error: str, input_snapshot: dict[str, Any]) -> dict[str, Any]:

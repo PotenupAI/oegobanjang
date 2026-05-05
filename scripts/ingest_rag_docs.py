@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 import re
+from html import unescape
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -112,6 +113,42 @@ def split_text(text: str, max_chars: int = DEFAULT_MAX_CHARS) -> list[str]:
             final_chunks.append(chunk[i : i + max_chars].strip())
 
     return [chunk for chunk in final_chunks if chunk]
+
+
+def split_semantic_text(text: str, *, doc_type: str, max_chars: int = DEFAULT_MAX_CHARS) -> list[str]:
+    text = normalize_text(text)
+    if not text:
+        return []
+
+    if doc_type == "law":
+        article_chunks = re.split(r"(?=\n?제\d+조(?:의\d+)?\s*\()", text)
+        chunks = [normalize_text(chunk) for chunk in article_chunks if normalize_text(chunk)]
+        if len(chunks) > 1:
+            return _cap_chunks(chunks, max_chars)
+
+    if doc_type == "procedure":
+        section_chunks = re.split(r"(?=\n(?:신청|접수|처리|제출|구비서류|기본정보|부가정보|\d+\.\s))", text)
+        chunks = [normalize_text(chunk) for chunk in section_chunks if normalize_text(chunk)]
+        if len(chunks) > 1:
+            return _cap_chunks(chunks, max_chars)
+
+    if doc_type == "form":
+        field_chunks = re.split(r"(?=\n(?:[가-힣A-Za-z ]{2,30}\s*[:：]|\d+\.\s))", text)
+        chunks = [normalize_text(chunk) for chunk in field_chunks if normalize_text(chunk)]
+        if len(chunks) > 1:
+            return _cap_chunks(chunks, max_chars)
+
+    return split_text(text, max_chars=max_chars)
+
+
+def _cap_chunks(chunks: list[str], max_chars: int) -> list[str]:
+    capped: list[str] = []
+    for chunk in chunks:
+        if len(chunk) <= max_chars:
+            capped.append(chunk)
+            continue
+        capped.extend(split_text(chunk, max_chars=max_chars))
+    return capped
 
 
 def infer_doc_type(record: dict[str, Any], source_path: str | None = None) -> str:
@@ -221,7 +258,7 @@ def make_chunks_from_record(record: dict[str, Any], source_path: str | None = No
     if not text:
         return []
 
-    chunks = split_text(text)
+    chunks = split_semantic_text(text, doc_type=str(metadata["doc_type"]))
 
     output: list[dict[str, Any]] = []
 
@@ -307,7 +344,7 @@ def load_raw_text_documents() -> list[tuple[dict[str, Any], str]]:
     if not RAW_DIR.exists():
         return []
 
-    supported_extensions = {".txt", ".md", ".html", ".htm"}
+    supported_extensions = {".txt", ".md", ".html", ".htm", ".pdf"}
 
     results: list[tuple[dict[str, Any], str]] = []
 
@@ -317,7 +354,7 @@ def load_raw_text_documents() -> list[tuple[dict[str, Any], str]]:
 
         relative = path.relative_to(ROOT_DIR).as_posix()
 
-        text = path.read_text(encoding="utf-8", errors="ignore")
+        text = load_raw_file_text(path)
 
         record = {
             "source_id": stable_id(relative),
@@ -334,6 +371,61 @@ def load_raw_text_documents() -> list[tuple[dict[str, Any], str]]:
         results.append((record, relative))
 
     return results
+
+
+def load_manifest_documents() -> list[tuple[dict[str, Any], str]]:
+    manifest_path = RAW_DIR / "source_manifest.json"
+    if not manifest_path.exists():
+        return []
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+    results: list[tuple[dict[str, Any], str]] = []
+    for source in manifest.get("sources", []):
+        if source.get("collection_status") != "collected":
+            continue
+        saved_path = source.get("saved_path")
+        if not saved_path:
+            continue
+        path = ROOT_DIR / str(saved_path)
+        if not path.exists() or path.name == "source_manifest.json":
+            continue
+
+        relative = path.relative_to(ROOT_DIR).as_posix()
+        record = {
+            **source,
+            "url": source.get("official_url") or source.get("url") or "",
+            "retrieved_at": manifest.get("collected_at", now_iso_date())[:10],
+            "text": load_raw_file_text(path),
+        }
+        results.append((record, relative))
+    return results
+
+
+def load_raw_file_text(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix in {".html", ".htm"}:
+        return html_to_text(path.read_text(encoding="utf-8", errors="ignore"))
+    if suffix == ".pdf":
+        return pdf_to_text(path)
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def html_to_text(raw: str) -> str:
+    raw = re.sub(r"(?is)<script[^>]*>.*?</script>", " ", raw)
+    raw = re.sub(r"(?is)<style[^>]*>.*?</style>", " ", raw)
+    raw = re.sub(r"(?i)</(?:h1|h2|h3|h4|p|li|tr|div|section)>", "\n", raw)
+    raw = re.sub(r"(?s)<[^>]+>", " ", raw)
+    return normalize_text(unescape(raw))
+
+
+def pdf_to_text(path: Path) -> str:
+    data = path.read_bytes()
+    decoded = data.decode("latin-1", errors="ignore")
+    strings = re.findall(r"[ -~가-힣]{8,}", decoded)
+    text = "\n".join(strings)
+    if text.strip():
+        return normalize_text(text)
+    return f"PDF source collected: {path.name}"
 
 
 def classify_chunk_file_name(chunk: dict[str, Any]) -> str:
@@ -374,7 +466,7 @@ def main() -> int:
     source_records = load_seed_documents()
     source_records.extend(load_document_requirements())
 
-    raw_records = load_raw_text_documents()
+    raw_records = load_manifest_documents()
 
     all_chunks: list[dict[str, Any]] = []
 

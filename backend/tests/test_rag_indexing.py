@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from app.agent_runtime.rag.chunking import (
     REQUIRED_METADATA_FIELDS,
@@ -9,6 +12,7 @@ from app.agent_runtime.rag.chunking import (
     load_policy_documents,
     write_chunks_jsonl,
 )
+from scripts.ingest_rag_docs import html_to_text, pdf_to_text, split_semantic_text
 from app.agent_runtime.rag.citation import can_use_as_answer_evidence
 from app.agent_runtime.rag.evaluate import evaluate_retrieval
 from app.agent_runtime.rag.retriever import PolicyRetriever, load_chunks
@@ -195,3 +199,26 @@ def test_all_chunks_have_complete_metadata_contract() -> None:
         assert metadata["evidence_grade"] in {"A", "B", "C", "D", "E", "F"}
         assert isinstance(metadata["mission_agent"], list)
         assert isinstance(metadata["visa_type"], list)
+
+
+def test_html_loader_strips_markup_and_preserves_text() -> None:
+    text = html_to_text("<html><body><h1>체류기간연장허가</h1><script>x()</script><p>여권 제출</p></body></html>")
+
+    assert "체류기간연장허가" in text
+    assert "여권 제출" in text
+    assert "<h1>" not in text
+    assert "x()" not in text
+
+
+def test_semantic_chunking_splits_law_articles() -> None:
+    chunks = split_semantic_text("제1조(목적) 내용입니다.\n제2조(정의) 정의입니다.", doc_type="law")
+
+    assert len(chunks) == 2
+    assert chunks[0].startswith("제1조")
+    assert chunks[1].startswith("제2조")
+
+
+def test_pdf_loader_returns_text_for_collected_pdf() -> None:
+    text = pdf_to_text(Path("data-pipeline/raw/law_form_employment_change_001.pdf"))
+
+    assert text
