@@ -3,3 +3,18 @@
 {"id":"rag-003","input":"안전교육 안내 메시지 템플릿 필요해","expected_source_ids":["message_template_safety_notice_ko"],"answer_evidence_only":true}
 {"id":"rag-004","input":"E-9 신규 채용 고용허가 절차 데모 문서 찾아줘","expected_source_ids":["seed_eps_procedure_demo_001"],"answer_evidence_only":false}
 {"id":"rag-005","input":"E-9 체류기간 연장 준비 데모 문서 찾아줘","expected_source_ids":["seed_visa_extension_demo_001"],"answer_evidence_only":false}
+{"id":"rag-006","input":"E-9 고용허가 신청 전에 내국인 구인노력 절차 근거 찾아줘","expected_source_ids":["eps_employer_process_001"],"answer_evidence_only":true}
+{"id":"rag-007","input":"E-9 허용업종은 어디서 확인해야 해?","expected_source_ids":["eps_allowed_industries_001"],"answer_evidence_only":true}
+{"id":"rag-008","input":"외국인근로자 고용변동 신고서 필드 근거 찾아줘","expected_source_ids":["law_form_employment_change_001"],"answer_evidence_only":true}
+{"id":"rag-009","input":"체류기간 연장할 때 여권과 외국인등록증 근거 찾아줘","expected_source_ids":["gov24_stay_extension_001"],"answer_evidence_only":true}
+{"id":"rag-010","input":"정부24 체류기간 연장 안내에서 고용허가서와 근로계약서 검토 근거 찾아줘","expected_source_ids":["gov24_stay_extension_001"],"answer_evidence_only":true}
+{"id":"rag-011","input":"신규 채용 요청서에 사업장 정보와 채용 인원 확인 항목 근거 찾아줘","expected_source_ids":["eps_employer_process_001"],"answer_evidence_only":true}
+{"id":"rag-012","input":"고용허가서 발급과 근로계약 체결 흐름 근거 찾아줘","expected_source_ids":["eps_employer_process_001"],"answer_evidence_only":true}
+{"id":"rag-013","input":"고용허가 신청 안내에서 신청인 정보와 채용 인원 근거 찾아줘","expected_source_ids":["eps_application_guide_001"],"answer_evidence_only":true}
+{"id":"rag-014","input":"외국인근로자 고용 법령을 공식 근거로 찾아줘","expected_source_ids":["law_foreign_worker_act_001"],"answer_evidence_only":true}
+{"id":"rag-015","input":"사업장 허용업종 제조업 건설업 농축산업 어업 근거 찾아줘","expected_source_ids":["eps_allowed_industries_001"],"answer_evidence_only":true}
+{"id":"rag-016","input":"고용변동 신고에서 여권번호 외국인등록번호 체류자격 필드 근거 찾아줘","expected_source_ids":["law_form_employment_change_001"],"answer_evidence_only":true}
+{"id":"rag-017","input":"외국인 근로자 안전교육 메시지 작성 근거 찾아줘","expected_source_ids":["kosha_multilingual_safety_001"],"answer_evidence_only":true}
+{"id":"rag-018","input":"안전교육 안내 메시지에 통역 지원 요청 방법을 넣을 근거 찾아줘","expected_source_ids":["kosha_multilingual_safety_001"],"answer_evidence_only":true}
+{"id":"rag-019","input":"행정사 전달 패키지에 누락 서류와 source_id 목록을 넣는 템플릿 찾아줘","expected_source_ids":["handoff_package_template_001"],"answer_evidence_only":true}
+{"id":"rag-020","input":"행정사에게 바로 보내지 않고 승인 후 전달해야 한다는 패키지 메시지 근거 찾아줘","expected_source_ids":["handoff_package_template_001"],"answer_evidence_only":true}

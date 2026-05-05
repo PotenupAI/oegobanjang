@@ -23,3 +23,17 @@ def test_rag_retrieval_cases_have_expected_source_ids() -> None:
         assert isinstance(row["expected_source_ids"], list)
         assert row["expected_source_ids"]
         assert "answer_evidence_only" in row
+
+
+def test_rag_retrieval_cases_cover_mvp_buckets() -> None:
+    dataset_path = ROOT_DIR / "evals" / "datasets" / "rag_retrieval_cases.jsonl"
+    rows = [
+        json.loads(line)
+        for line in dataset_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+    assert len(rows) >= 20
+    joined = "\n".join(row["input"] for row in rows)
+    for keyword in ["신규 채용", "고용허가", "허용업종", "체류기간", "고용변동", "여권", "안전교육", "메시지"]:
+        assert keyword in joined

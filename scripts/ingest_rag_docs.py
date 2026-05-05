@@ -184,18 +184,26 @@ def normalize_metadata(
         "title": record.get("title", "Untitled"),
         "publisher": record.get("publisher", "unknown"),
         "source_type": record.get("source_type", "unknown"),
-        "url": record.get("url", ""),
+        "url": record.get("url") or record.get("official_url") or "",
         "retrieved_at": record.get("retrieved_at", now_iso_date()),
         "effective_date": record.get("effective_date"),
         "doc_type": doc_type,
-        "mission_agent": record.get("mission_agent", []),
-        "visa_type": record.get("visa_type", []),
-        "country": record.get("country", ["ALL"]),
-        "industry": record.get("industry", []),
+        "mission_agent": _as_list(record.get("mission_agent") or ["workforce_agent"]),
+        "visa_type": _as_list(record.get("visa_type") or ["E-9"]),
+        "country": _as_list(record.get("country") or ["ALL"]),
+        "industry": _as_list(record.get("industry") or ["ALL"]),
         "risk_level": record.get("risk_level", "medium"),
-        "evidence_grade": evidence_grade,
+        "evidence_grade": str(evidence_grade).upper(),
         "source_path": source_path,
     }
+
+
+def _as_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    if value is None:
+        return []
+    return [str(value)]
 
 
 def make_chunks_from_record(record: dict[str, Any], source_path: str | None = None) -> list[dict[str, Any]]:

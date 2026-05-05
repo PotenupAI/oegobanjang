@@ -166,3 +166,32 @@ def test_evaluate_retrieval_reports_hit_rate(tmp_path: Path) -> None:
 
     assert report.hit_rate == 1.0
     assert report.hits == 1
+
+
+def test_all_chunks_have_complete_metadata_contract() -> None:
+    required = {
+        "source_id",
+        "title",
+        "publisher",
+        "source_type",
+        "url",
+        "retrieved_at",
+        "effective_date",
+        "doc_type",
+        "mission_agent",
+        "visa_type",
+        "country",
+        "industry",
+        "risk_level",
+        "evidence_grade",
+    }
+
+    chunk_path = Path("data-pipeline/processed/chunks/all_chunks.jsonl")
+    for line_no, line in enumerate(chunk_path.read_text(encoding="utf-8").splitlines(), start=1):
+        row = json.loads(line)
+        metadata = row.get("metadata", {})
+        missing = required - set(metadata)
+        assert not missing, f"line {line_no} missing metadata {sorted(missing)}"
+        assert metadata["evidence_grade"] in {"A", "B", "C", "D", "E", "F"}
+        assert isinstance(metadata["mission_agent"], list)
+        assert isinstance(metadata["visa_type"], list)

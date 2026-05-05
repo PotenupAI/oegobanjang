@@ -1,0 +1,1310 @@
+
+
+
+
+
+
+
+<script type="text/javascript" src='/js/egovframework/com/cmm/showModalDialog.js'></script>
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>외국인고용관리시스템 - 고용24</title>
+<link rel="stylesheet" type="text/css" href="/comm/css/kr/newcss/common.css" />
+<link rel="stylesheet" type="text/css" href="/comm/css/kr/newcss/data.css?ver=20250110" />
+<link rel="stylesheet" type="text/css" href="/comm/css/kr/new/button.css" />
+<!-- css common // 기존 사이트 css임-->
+<link rel="stylesheet" href="/comm/css/kr/newcss/main_new.css?ver=20250922" />
+<link rel="stylesheet" href="/comm/css/kr/newcss/gnb.css" />
+<script src="/comm/js/jquery-3.6.1.min.js"></script>
+<script src="/comm/js/gnb.js"></script> <!-- js gnb -->
+<link href="/comm/js/slick.css" rel="stylesheet">
+<!-- css visual slider -->
+<script src="/comm/js/slick.min.js"></script> <!-- js visual slider -->
+<script src="/comm/js/noticetab.js"></script> <!-- js noticetab -->
+<link rel="stylesheet" type="text/css" href="/comm/css/kr/newcss/button.css" />
+<script type="text/javascript" src="/comm/js/jquery.jui.min.js" charset="utf-8" ></script>
+<script type="text/javascript" src="/comm/js/kr/common.js"></script>
+<script type="text/javascript" src="/comm/js/string.js"></script>
+<script type="text/javascript" src="/comm/js/gVariable.js?v=0.1"></script>
+<script type="text/javascript" src="/comm/js/message.js"></script>
+<script type="text/javascript" src="/comm/js/common.js?v=0.1"></script>
+<script type="text/javascript" src="/comm/js/before_docs.js"></script>
+
+<script type="text/javascript">
+
+//글자 크기 변경
+let curZoom = Number(getCookie("epsZoom") || 1);
+function setFontSize(){
+    var sizeP = document.getElementById("sizeP");
+    var sizeR = document.getElementById("sizeR");
+    var sizeM = document.getElementById("sizeM");
+    var bodyObj = document.getElementsByTagName('body')[0];
+    var minZoom = 0.5;
+    var maxZoom = 1.3;
+    
+    sizeP.onclick=function(){
+        curZoom = (curZoom || document.body.style.zoom || 1) + 0.05;
+        if(curZoom > maxZoom) {
+            alert('확대 가능한 최대 크기는 ' +Math.round(maxZoom*100)+ '%입니다. \n더 큰 확대를 원하실 경우 브라우저의 확대/축소 기능을 사용 바랍니다. 사용키 : ctrl +/-');
+            return;
+        } else {
+            bodyObj.style.zoom = curZoom;
+            setCookie("epsZoom", curZoom , 1);
+        }
+    }
+
+    sizeR.onclick=function(){
+        curZoom = 1;
+        bodyObj.style.zoom = curZoom;
+        setCookie("epsZoom", curZoom , 1);
+    }
+
+    sizeM.onclick=function(){
+        curZoom = (curZoom || document.body.style.zoom || 1) - 0.05;
+        if(curZoom < minZoom) {
+            alert('축소 가능한 최소 크기는 ' +Math.round(curZoom*100)+ '%입니다. \n더 큰 확대를 원하실 경우 브라우저의 확대/축소 기능을 사용 바랍니다. 사용키 : ctrl +/-');
+            return;
+        } else {
+            bodyObj.style.zoom = curZoom;
+            setCookie("epsZoom", curZoom , 1);
+        }
+    }
+}
+
+if (window.addEventListener){
+    window.addEventListener("load", setFontSize, false);
+}
+else if (window.attachEvent){
+    window.attachEvent("onload", setFontSize);
+}
+
+//이부분부터  수정할 필요 없습니다.
+function getCookie(name) {
+    var Found = false
+    var start, end
+    var i = 0
+    while(i <= document.cookie.length) {
+        start = i
+        end = start + name.length
+    
+        if (document.cookie.substring(start, end) == name) {
+            Found = true;
+            break;
+        }
+        i++
+    }
+
+    if (Found == true) {
+        start = end + 1;
+        end = document.cookie.indexOf(";", start);
+        if(end < start) end = document.cookie.length;
+        return document.cookie.substring(start, end);
+    }
+    return "";
+}
+
+function setCookie(name, value, expiredays){
+    var todayDate = new Date();
+    todayDate.setDate( todayDate.getDate() + expiredays );
+    document.cookie = name + "=" + escape( value ) + "; path=/; expires=" + todayDate.toGMTString() + ";";
+}
+
+
+// 화면이동
+function fncGoURL(url) {
+    location.href = url;
+}
+
+//로그인 페이지로 이동
+function fncMoveLoginPage() {
+	location.href = '/eo/UserLoginM.eo';
+}
+
+//로그아웃
+function fncLogout() {
+	if(confirm('로그아웃 하시겠습니까?')) {
+		location.href = '/eo/UserLogoutU.eo';
+		//location.replace('/eo/UserLogoutU.eo');
+	}
+}
+
+//마이페이지로 이동
+function fncMoveMyPage() {
+ 	let custSeCd = "";  
+	if(custSeCd.indexOf("801") == 0) {
+		location.href = '/eo/UserPwdCheck.eo?numberCheck=2';
+	}
+}
+
+//top 메뉴 중 미승인 가입자 url 컨트롤
+function goMenuUrl(url, approveYn, level){
+
+	if(false){
+		// 로그인 상태이지만 미승인 가입자일 경우
+		if(true){
+			alert("※ 외국인근로자 고용 등에 관한 법률 시행령 제31조의 2(고유식별정보의 처리)에 따라 해당 메뉴를 이용하기 위해서는 반드시 신원인증이 필요합니다.");
+			return false;
+		}else if(document.URL.indexOf("OnLineEppAdocCM.eo") > 0 && level != 1){
+			cfOpen("550", "500","1","/eo/pageLeavePopupR.eo?nextUrl="+url+"&approveYn="+approveYn,"pop","status=0,menubar=0,toolbar=0,scrollbars=yes");
+			return false;
+		}else{
+			location.href=url;
+		}
+	}else{
+		location.href=url;
+	}
+}
+
+// 질문/답변 클릭시 e-고객센터로 이동확인창
+function qnaMove(){
+
+	if(confirm("고용허가제 문의는 e-고객센터를 통하여 문의바랍니다.\n(확인 : e-고객센터 연락처, 취소 : 질문및답변으로 이동)")){
+			//window.open("https://minwon.moel.go.kr");
+			//fncGoURL("/eo/QnALst.eo?bbsCd=03007");
+			alert("법령 및 제도 문의 : 1350(유료)");
+		}else{
+			fncGoURL("/eo/VocQnaRecentlyLst.eo?gubun=recently");
+		}
+}
+
+// ebook 도움말 관련 function
+function fncOpenHelp(param){
+	var text	= "";
+	text		= param;
+	cfOpen("720", '700', 2, "/eo/MenuHelpR.eo?a="+text, "helpWin", "scrollbars=yes", "");
+}
+//온라인동영상 도움말 관련 function
+function fncOpenOnlineHelp(param){
+	var text	= "";
+	text		= param;
+	cfOpen("800", '520', 2, "/eo/MenuHelpOnlineR.eo?a="+text, "helpWin", "scrollbars=yes", "");
+}
+//하이코리아 이동확인창
+function fncMoveHikorea(){
+	if(confirm("하이코리아 외국인근로자(H-2, E-9) 통합고용변동신고 메뉴로 통합되었습니다.\n하이코리아로 이동합니다.")){
+		window.open("http://www.hikorea.go.kr/pt/CvlapplInfoDetailR_kr.pt?cvlapplCd=12700000005&amp;locale=ko");
+	}
+}
+
+//접수번호/사업장번호를 변경하여 세션에 저장
+function fncChangeRecvBplcNo() {
+	var frm = document.mainForm;
+
+	frm.action = "/eo/UserChangeNo.eo";
+	frm.submit();
+}
+//회원가입 페이지로 이동
+function fncMoveJoinMemberPage() {
+	location.href = '/eo/UserAuthYnRM.eo';
+}
+
+//사업장 조회 팝업 표시
+function fncBplcSrch(lginId){
+	cfOpen(700, 550, 3, "/eo/BplcSrchPopR.eo", "BplcSrchPop", "", "", "");
+}
+
+//메인화면으로 이동
+function fncMoveIndexPage(approveYn,level){
+	var frm = document.mainForm;
+
+	if(false){
+		// 로그인 상태이지만 미승인 가입자일 경우
+		if(true){
+			alert("※ 외국인근로자 고용 등에 관한 법률 시행령 제31조의 2(고유식별정보의 처리)에 따라 해당 메뉴를 이용하기 위해서는 반드시 신원인증이 필요합니다.");
+			return false;
+		}else if(document.URL.indexOf("OnLineEppAdocCM.eo") > 0 && level != 1){
+			cfOpen("550", "500","1","/eo/pageLeavePopupR.eo?nextUrl=/eo/main.eo&approveYn="+approveYn,"pop","status=0,menubar=0,toolbar=0,scrollbars=yes");
+			return false;
+		}else{
+			frm.action = "/eo/main.eo";
+			frm.submit();
+		}
+	}else{
+		frm.action = "/eo/main.eo";
+		frm.submit();
+	}
+}
+
+
+/* 2017.07.10 웹접근성 조치*/
+//jQuery object 가 없다면 head에 script 생성
+if( typeof jQuery == 'undefined'){
+	var script = document.createElement('script');
+	script.type = "text/javascript";
+	script.src = "/comm/js/jquery-1.4.2.js";
+	document.getElementsByTagName('head')[0].appendChild(script);
+}
+//화면 onload
+$(function(){
+	
+	//PC, 모바일 구분 2024-08-08 추가
+	var isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|OperaMini/i.test(navigator.userAgent);
+	$(".mobileChk").click(function() {	//고용24 링크 클릭이벤트
+		if(isMobile) { 	//모바일이면 이동 X
+			alert("모바일 서비스는 지원하지 않습니다. PC로 고용24 홈페이지(www.work24.go.kr) 접속해주시기 바랍니다.");
+			return false;
+		}
+	});
+});
+</script>
+</head>
+<body>
+<script type="text/javascript">
+document.body.style.zoom = curZoom;
+</script>
+<div id="wrap">
+    <form name="mainForm" method="post" action="/eo/main.eo">
+        <input type="hidden" name="recvBplcNo" />
+        <input type="hidden" name="resBusirNo" />
+        <input type="hidden" name="orgCd" />
+        <input type="hidden" name="lginId" value =""/>
+        <input type="hidden" name="callBackFunc" value=""/>
+    <ul id="skip">
+        <li><a href="#contents">본문 바로가기</a></li>
+        <li><a href="#lnb">서브메뉴 바로가기</a></li>
+    </ul>
+    
+    <div class="nuri"><p>이 누리집은 대한민국 공식 전자정부 누리집입니다.</p></div>
+    <!-- s:메인상단팝업 -->
+    <div id="main_top_popup">
+        <div>
+            <div class="con_text">사업주 고용허가서비스는 더 나은 서비스 제공을 위해 고용24로 통합했습니다.<br>
+                온라인 고용서비스 통합포털 <strong>고용24(www.work24.go.kr)</strong>를 만나보세요. </div>
+            <div class="con_link"><a href="https://www.work24.go.kr/ep/a/a/0001/hpepaa0001m30bplc.do?redirectUrl=%2Fa%2Fa%2F0001%2Fhpepaa0001m30bplcPost.do&programMenuIdentification=EBG020000500026&menuPurpSecd=EBM00&currentMenuId=EBG020000500001&postType=bplcPost.do" target="_blank" title="새창열림">고용24 이동하기</a></div>
+            <button onclick="document.getElementById('main_top_popup').style.display='none'" class="btn_close" title="고용24 이동하기 레이어  창 닫기">&times;</button>
+        </div>
+    </div>
+    <!-- s:header -->
+    
+<header>
+        <div class="header_top">
+            <h1><a href="#" onclick="fncMoveIndexPage()"><img src="/comm/images/main_new/logo.jpg" alt="EPS(Employment Permit System)"/></a><a href="https://www.work24.go.kr/cm/main.do"  target="_blank"><img src="/comm/images/main_new/logo2.jpg" alt="고용24"/></a></h1>
+            <ul>
+            
+                <li><a href="/eo/UserAuthYnRM.eo" onclick="fncMoveJoinMemberPage();">외국인 회원가입(sign up)</a></li>
+                <li><a href="/eo/UserLoginM.eo" onclick="fncMoveLoginPage();">외국인 로그인</a></li>
+			            
+                <li><a href="/eo/sitemap.eo">사이트맵</a></li>
+                <li><a href="#wrap" onclick="bookmarksite('EPS', 'https://www.eps.go.kr');return false;" >즐겨찾기</a></li>
+                <li class="zoom_btn">
+                    <button class="zoomin" type="button" id="sizeP" title="글자크기 확대">글자크기 확대</button>
+                    <button class="zoomout" type="button" id="sizeM" title="글자크기 축소">글자크기 축소</button>
+                    <button class="zoomreset" type="button" id="sizeR" title="글자크기 초기화">글자크기 초기화</button>
+                </li>
+            </ul>
+            <a href="#sitemap" class="all_menu_hide" id="all_menu_hide" onclick="document.getElementById('sitemap').style.display='block'; document.getElementById('sitemap').querySelector('.btn_close').focus(); return false;" title="전체메뉴 열림">전체메뉴</a>
+            <div id="gnavi_btn"><a href="#gnavi" class="hx-com-menu">메뉴보기</a></div>
+            <!--모바일메뉴 숨김처리함-->
+
+        </div>
+
+        <!-- s:gnavi:gmenu -->
+        <nav>
+            
+<div id="gnavibox">
+	<ul>
+	    <li class="gnavi"> <a href="/eo/kr/frnr/index.eo">일반외국인서비스</a>
+	        <div class="ly_center ">
+	            <ul>
+	                <li class="mnavi"><a href="/eo/EmptEduHistR.eo?frnr=20101">취업교육이력조회</a></li>
+	                <li class="mnavi"><a href="/eo/FrnwCappLstR.eo?frnr=20101">민원신청진행현황</a></li>
+	                <li class="mnavi"><a href="/eo/BplcChgHistR.eo?frnr=20101">사업장변동이력조회</a></li>
+	                <li class="mnavi"><a href="https://epstopik.hrdkorea.or.kr" target="_blank" title="한국어능력시험 새창 열림">한국어능력시험</a></li>
+	                <li class="mnavi"><a href="https://eps.hrdkorea.or.kr/e9/user/jobMatching/jobRecruit.do?method=recruitList" target="_blank" title="귀국근로자 취업알선 새창 열림">귀국근로자 취업알선</a></li>
+	                <li class="mnavi"><a href="/eo/FrnwInsExptRocAmtR.eo?frnr=20101">퇴직금차액산정지원</a></li>
+	                <li class="mnavi"><a href="/eo/FrnrCarrWcrtIssuR.eo?frnr=20101">경력증명서발급신청</a></li>
+	                <li class="mnavi"><a href="/eo/InsJoinPsttLstR.eo?frnr=20101">보험가입 내역</a></li>
+	                <li class="mnavi"><a href="/eo/WrkConPsttLstR.eo?frnr=20101">근로계약 현황</a></li>
+	                
+				        <li class="mnavi"><a href="javascript:alert('신청기간이 종료되었습니다.');">계절근로신청</a></li>
+				    
+				    <li class="mnavi"><a href="/eo/BplcChgApplR.eo?frnr=20101">사업장변경신청</a></li>
+				    <li class="mnavi"><a href="/eo/DepartureReportR.eo?frnr=20101">출국예정신고</a></li>
+				    <li class="mnavi"><a href="/eo/SeekCondBplcHistR.eo?frnr=20101">알선사업장 이력조회</a></li>
+				</ul>
+			</div>
+        </li>
+        <li class="gnavi"> <a href="/eo/kr/frnr/index02.eo">특례외국인서비스</a>
+            <div class="ly_center ">
+                <ul>
+                    <li class="mnavi"><a href="/eo/EmptEduHistR.eo?frnr=20102">취업교육이력조회</a></li>
+                    <li class="mnavi"><a href="/eo/FrnwCappLstR.eo?frnr=20102">민원신청진행현황</a></li>
+                    <li class="mnavi"><a href="/eo/BplcChgHistR.eo?frnr=20102">사업장변동이력조회</a></li>
+                    <li class="mnavi"><a href="/eo/SwkBplcLstR.eo">특례구인사업장조회</a></li>
+                    <li class="mnavi"><a href="/eo/SeekCondBplcLstR.eo">알선장출력요청</a></li>
+                    <li class="mnavi"><a href="/eo/EmptEduH2RsltLstR.eo">건설업 취업증명서 조회</a></li>
+                    <li class="mnavi"><a href="https://eps.hrdkorea.or.kr/h2/empProcess/empEdu.do" target="_blank" title="취업교육신청 새창 열림">취업교육신청</a></li>
+                    <li class="mnavi"><a href="/eo/FrnwInsExptRocAmtR.eo?frnr=20102">퇴직금차액산정지원</a></li>
+                    <li class="mnavi"><a href="/eo/InsJoinPsttLstR.eo?frnr=20102">보험가입 내역</a></li>
+                    <li class="mnavi"><a href="/eo/WrkConPsttLstR.eo?frnr=20102">근로계약 현황</a></li>
+                    <li class="mnavi"><a href="/eo/SeekCondBplcHistR.eo?frnr=20102">알선사업장 이력조회</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="gnavi"> <a href="/eo/EmployPerSystem.eo">고용허가제정보</a>
+            <div class="ly_center ">
+                <ul>
+                    <li class="mnavi"><a href="/eo/EmployPerSystem.eo?tabGb=01">고용허가제</a></li>
+                    <li class="mnavi"><a href="/eo/EmployJobProc.eo?tabGb=01">고용취업절차</a></li>
+                    <li class="mnavi"><a href="/eo/ScoreInfo.eo?tabGb=01">점수제</a></li>
+                    <li class="mnavi"><a href="/eo/BusiPsttOutInfoM.eo">출국준비 안내</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="gnavi"> <a href="/eo/FormDataLst.eo">자료실</a>
+            <div class="ly_center ">
+                <ul>
+                    <li class="mnavi"><a href="/eo/FormDataLst.eo">업무별서식</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="gnavi"> <a href="/eo/CustCentLst.eo">고객센터</a>
+            <div class="ly_center ">
+                <ul>
+                    <li class="mnavi"><a href="/eo/NotiLst.eo">공지사항</a></li>
+                    <li class="mnavi"><a href="/eo/MyConsultLst.eo">나의상담내역</a></li>
+                    
+                    <li class="mnavi"><a href="/eo/VocFaqLst.eo">자주 묻는 질문</a></li>
+                    
+                    <li class="mnavi"><a href="/eo/IdPasswordSrchRM.eo">외국인 ID/PW 찾기</a></li>
+                    
+                    <li class="mnavi"><a href="/eo/OrgInfoLst.eo">유관기관 찾기</a></li>
+                    <li class="mnavi"><a href="/eo/VocIndivInfoLstR.eo">개인정보 처리요구</a></li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+</div>
+            <!-- e:gnavibox -->
+        </nav>
+        <!-- e:gnavi -->
+
+        <!-- s:전체메뉴팝업레이어 -->
+        <div id="sitemap" class="overlay_popup">
+            
+<div class="overlay_guide sitemap">
+    <button onclick="document.getElementById('sitemap').style.display='none'; document.getElementById('all_menu_hide').focus(); return false;" class="btn_close" aria-label="전체메뉴 레이어 닫기">&times;</button>
+    <div class="overlay_content">
+        <dl>
+            <dt><a href="/eo/kr/frnr/index.eo">일반외국인서비스</a></dt>
+            <dd><a href="/eo/EmptEduHistR.eo?frnr=20101">취업교육이력조회</a></dd>
+            <dd><a href="/eo/FrnwCappLstR.eo?frnr=20101">민원신청진행현황</a></dd>
+            <dd><a href="/eo/BplcChgHistR.eo?frnr=20101">사업장변동이력조회</a></dd>
+            <dd><a href="https://epstopik.hrdkorea.or.kr" target="_blank" title="한국어능력시험 새창 알림">한국어능력시험</a></dd>
+            <dd><a href="https://eps.hrdkorea.or.kr/e9/user/jobMatching/jobRecruit.do?method=recruitList" target="_blank" title="귀국근로자 취업알선 새창 알림">귀국근로자 취업알선</a></dd>
+            <dd><a href="/eo/FrnwInsExptRocAmtR.eo?frnr=20101">퇴직금차액산정지원</a></dd>
+            <dd><a href="/eo/FrnrCarrWcrtIssuR.eo?frnr=20101">경력증명서발급신청</a></dd>
+            <dd><a href="/eo/InsJoinPsttLstR.eo?frnr=20101">보험가입 내역</a></dd>
+            <dd><a href="/eo/WrkConPsttLstR.eo?frnr=20101">근로계약 현황</a></dd>
+            
+                <dd><a href="javascript:alert('신청기간이 종료되었습니다.');">계절근로신청</a></dd>
+            
+            <dd><a href="/eo/BplcChgApplR.eo?frnr=20101">사업장변경신청</a></dd>
+            <dd><a href="/eo/DepartureReportR.eo?frnr=20101">출국예정신고</a></dd>
+        </dl>
+        <dl>
+            <dt><a href="/eo/kr/frnr/index02.eo">특례외국인서비스</a></dt>
+            <dd><a href="/eo/EmptEduHistR.eo?frnr=20102">취업교육이력조회</a></dd>
+            <dd><a href="/eo/FrnwCappLstR.eo?frnr=20102">민원신청진행현황</a></dd>
+            <dd><a href="/eo/BplcChgHistR.eo?frnr=20102">사업장변동이력조회</a></dd>
+            <dd><a href="/eo/SwkBplcLstR.eo">특례구인사업장조회</a></dd>
+            <dd><a href="/eo/SeekCondBplcLstR.eo">알선장출력요청</a></dd>
+            <dd><a href="/eo/EmptEduH2RsltLstR.eo">건설업 취업증명서 조회</a></dd>
+            <dd><a href="https://eps.hrdkorea.or.kr/h2/empProcess/empEdu.do" target="_blank" title="취업교육신청 새창 알림">취업교육신청</a></dd>
+            <dd><a href="/eo/FrnwInsExptRocAmtR.eo?frnr=20102">퇴직금차액산정지원</a></dd>
+            <dd><a href="/eo/InsJoinPsttLstR.eo?frnr=20102">보험가입 내역</a></dd>
+            <dd><a href="/eo/WrkConPsttLstR.eo?frnr=20102">근로계약 현황</a></dd>
+        </dl>
+        <dl>
+            <dt><a href="/eo/EmployPerSystem.eo">고용허가제정보</a></dt>
+            <dd><a href="/eo/EmployPerSystem.eo?tabGb=01">고용허가제</a></dd>
+            <dd><a href="/eo/EmployJobProc.eo?tabGb=01">고용취업절차</a></dd>
+            <dd><a href="/eo/ScoreInfo.eo?tabGb=01">점수제</a></dd>
+            <dd><a href="/eo/BusiPsttOutInfoM.eo">출국 준비 안내</a></dd>
+        </dl>
+        <dl>
+            <dt><a href="/eo/FormDataLst.eo">자료실</a></dt>
+            <dd><a href="/eo/FormDataLst.eo">업무별서식</a></dd>
+        </dl>
+        <dl>
+            <dt><a href="/eo/CustCentLst.eo">고객센터</a></dt>
+            <dd><a href="/eo/NotiLst.eo">공지사항</a></dd>
+            <dd><a href="/eo/MyConsultLst.eo">나의상담내역</a></dd>
+            
+            <dd><a href="/eo/VocFaqLst.eo">자주 묻는 질문</a></dd>
+            
+            <dd><a href="/eo/IdPasswordSrchRM.eo">외국인 ID/PW 찾기</a></dd>
+            
+            <dd><a href="/eo/OrgInfoLst.eo">유관기관 찾기</a></dd>
+            <dd><a href="/eo/VocIndivInfoLstR.eo">개인정보 처리요구</a></dd>
+        </dl>
+    </div>
+</div>
+        </div>
+
+
+    </header>
+    <!-- e:header -->
+    </form>
+
+<div id="sub_container">
+<!--s:container 서브 레이아웃 시작 -->
+<div id="container">
+
+
+
+
+
+
+<script type="text/javascript" src="/comm/js/kr/menu_new.js" charset="utf-8" ></script>
+
+<script type="text/javascript">
+var natNm = "";
+$(document).ready(function(){
+	/*********************************************************************************************
+	[REQ-PD-F-0003] 2017-11-21 ADD - START
+	[REQ-PD-F-0004] 2017-11-21 ADD - START
+	국가선택 콤보박스 특례외국인/일반외국인 목록 다르게 보이도록 분기
+	*********************************************************************************************/
+	if($("input[name='frnrSeCd']").val()=="20101" || $("input[name='frnrSeCd']").val()==""){
+		if($("#nation option").size() == 0){
+			var str = "";
+			if(natNm == 'kr'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="kr" ' + str + '>Korea</option>');
+			if(natNm == 'chs'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="chs" ' + str + '>China(简体)</option>');
+			if(natNm == 'cht'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="cht" ' + str + '>China(傳統)</option>');
+			if(natNm == 'th'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="th" ' + str + '>Thailand</option>');
+			if(natNm == 'in'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="in" ' + str+ '>Indonesia</option>');
+			if(natNm == 'vi'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="vi" ' + str+ '>Vietnam</option>');
+			if(natNm == 'ph'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="ph" ' + str+ '>Philippines</option>');
+			if(natNm == 'mo'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="mo" ' + str+ '>Mongolia</option>');
+			if(natNm == 'ca'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="ca" ' + str+ '>Cambodia</option>');
+			if(natNm == 'pa'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="pa" ' + str+ '>Pakistan</option>');
+			if(natNm == 'bd'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="bd" ' + str+ '>Bangladesh</option>');
+			if(natNm == 'np'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="np" ' + str+ '>Nepal</option>');
+			if(natNm == 'my'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="my" ' + str+ '>Myanmar</option>');
+			if(natNm == 'uz'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="uz" ' + str+ '>Uzbekistan</option>');
+			if(natNm == 'sl'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="sl" ' + str+ '>SriLanka</option>');
+			if(natNm == 'do'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="do" ' + str+ '>Timor-Leste</option>');
+			if(natNm == 'kz'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="kz" ' + str+ '>Kyrgyzstan</option>');
+
+			/* [REQ-PD-F-0003] 국가검색에 라오스어 추가 ADD - Start */
+			if(natNm == 'lo'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="lo" ' + str+ '>Laos</option>');
+			/* [REQ-PD-F-0003] ADD - End */
+		}
+	}else if($("input[name='frnrSeCd']").val()=="20101" || $("input[name='frnrSeCd']").val()==""){
+		if($("#nation option").size() == 0){
+			var str = "";
+			if(natNm == 'kr'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="kr" ' + str + '>Korea</option>');
+			if(natNm == 'chs'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="ru" ' + str + '>Russia</option>');
+			if(natNm == 'ru'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="chs" ' + str + '>China(简体)</option>');
+			if(natNm == 'cht'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="cht" ' + str + '>China(傳統)</option>');
+			if(natNm == 'th'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+		}
+	} else {
+		if($("#nation option").size() == 0){
+			var str = "";
+			if(natNm == 'kr'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="kr" ' + str + '>Korea</option>');
+			/* [REQ-PD-F-0003] 국가검색에 라오스어 추가 ADD - Start */
+			if(natNm == 'ru'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="ru" ' + str+ '>Russia</option>');
+			/* [REQ-PD-F-0003] ADD - End */
+			if(natNm == 'chs'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="chs" ' + str + '>China(简体)</option>');
+			if(natNm == 'cht'){
+				str = "selected";
+			}else{
+				str = "";
+			}
+			$("#nation").append('<option value="cht" ' + str + '>China(傳統)</option>');
+		}
+	}
+});
+</script>
+<!--s:sub_menu 서브메뉴 -->
+<div id="lnb" class="employment">
+	<h2>고용허가제정보</h2>
+	<ul>
+		<li>
+			<a href="/eo/EmployPerSystem.eo?tabGb=01">고용허가제</a>
+			<ul>
+				<li><a href="/eo/EmployPerSystem.eo?tabGb=01">고용허가제의의와 현황</a></li>
+				<li><a href="/eo/EmployPerSystem.eo?tabGb=02">연도별 도입쿼터 안내</a></li>
+				<li><a href="/eo/EmployPerSystem.eo?tabGb=03">운영조직</a></li>
+				<li><a href="/eo/EmployPerSystem.eo?tabGb=04">허용업종소개</a></li>
+				<li><a href="/eo/EmployPerSystem.eo?tabGb=05">사업장규모별구인인원소개</a></li>
+				<li><a href="/eo/EmployPerSystem.eo?tabGb=06">각종보험가입및혜택</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/eo/EmployJobProc.eo">고용취업절차</a>
+			<ul>
+				<li><a href="/eo/EmployJobProc.eo?tabGb=01">사업주</a></li>
+				<li><a href="/eo/EmployJobProc.eo?tabGb=06">일반외국인</a></li>
+				<li><a href="/eo/EmployJobProc.eo?tabGb=07">특례외국인</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/eo/ScoreInfo.eo?tabGb=01">점수제</a>
+			<ul>
+				<li><a href="/eo/ScoreInfo.eo?tabGb=01">배정계획</a></li>
+				<li><a href="/eo/ScoreInfo.eo?tabGb=02">점수제배정절차</a></li>
+				<li><a href="/eo/ScoreInfo.eo?tabGb=03">점수제평가지표</a></li>
+				<li><a href="/eo/ScoreInfo.eo?tabGb=04">유의사항</a></li>
+			</ul>
+		</li>
+		<li class=last >
+			<a href="/eo/BusiPsttOutInfoM.eo">출국준비 안내</a>
+		</li>
+		
+	</ul>
+	<script type="text/javascript">
+	<!--
+		window.initialSubMenu	= [0,3];
+	//-->
+	</script>
+	<button>원격지원시스템</button>
+</div>
+<!--e:sub_menu -->
+<!--s:content 컨텐츠 시작 -->
+
+<script type="text/javascript">top.document.title="허용업종 소개 | 외국인 고용 관리시스템";</script>
+<script type="text/javascript">
+<!--
+natNm = "kr";
+var win = null;
+
+function AreaPrintAll(printThis){
+  win = window.open();
+  self.focus();
+  win.document.open();
+  win.document.write ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">');
+  win.document.write ('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">');
+  win.document.write ('<head>');
+  win.document.write ('<link rel="stylesheet" type="text/css" href="/comm/css/kr/new/layout.css"/>');
+  win.document.write ('</head>');
+  win.document.write ('<body>');
+  var transPrintThis = printThis.replace("<h4 class=\"typeE\">광업","<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><h4 class=\"typeE\">광업")
+  win.document.write (transPrintThis);
+  win.document.write ('</body></html>');
+  win.document.close();
+  win.print();
+  win.close();
+}
+
+//tab 이동
+function fncMoveTab(tabGb){
+	var natNm 	= "kr";
+	document.location.href = "/eo/EmployPerSystem.eo?natNm="+natNm+"&tabGb="+tabGb;
+}
+
+//다국어페이지이동
+function fncMoveService(){
+	var tabGb 	= "04";
+	document.location.href = "/eo/EmployPerSystem.eo?natNm="+$("#nation").val()+"&tabGb="+tabGb;
+}
+//-->
+/*
+ * 2017.07.07 웹접근성 조치
+ * select#nation 태그를 바라보는 label 태그 for 알맞게 수정
+ */
+ // jQuery object 가 없다면 head에 script 생성
+if( typeof jQuery == 'undefined'){
+	var script = document.createElement('script');
+	script.type = "text/javascript";
+	script.src = "/comm/js/jquery-1.4.2.js";
+	document.getElementsByTagName('head')[0].appendChild(script);
+}
+
+//화면 onload
+$(function(){
+	// target 이 될 p 태그 찾기
+	var trgetLabelTagObj = $("div#contents div.srch_box p > label[for='select_country']");
+
+	// laber for 속성을 nation으로 수정
+	trgetLabelTagObj.attr('for', 'nation');
+
+	$("div#contents div.srch_box > select#nation").attr("title", trgetLabelTagObj.text());
+
+});
+</script>
+
+<input type="hidden" name="frnrSeCd" id="frnrSeCd" value="">
+<!-- [REQ-PD-F-0015] 허용업종소개 Start -->
+<div id='contents' class='snb'>
+	<!-- 현재위치 -->
+	<p id='location'>Home  > 고용허가제 정보 > 고용허가제 > 허용업종 소개</p>
+	<!-- //현재위치 -->
+
+	<h3><img src='/comm/images/kr/sub/h3_02.gif' alt='고용허가제'></h3>
+	
+	<!-- 국가선택 -->
+	
+
+<script type='text/javascript'>
+
+		/*
+		if(urlname.indexOf(&apos;UserBasicInfoC.jsp&apos;) > 0){
+			$(&apos;#nation&apos;).attr(&apos;disabled&apos; , true);
+			$(&apos;#nationSrchBtn&apos;).remove();
+		}
+		*/
+	/* }
+}); */
+</script>
+
+<div class='srch_box'>
+		<!-- <form> -->
+		<p><label for='select_country'>국가선택 :</label></p>
+		<select id='nation' name='nation'>
+					</select>
+		<button type='button' id='nationSrchBtn' onclick='fncMoveService();'>Search</button>
+ 		<!-- </form> -->
+</div>
+	
+	<h4 class='typeE'>허용업종 소개</h4>
+	<!-- 컨텐츠 영역 Start-->
+	<div class='subBox'>
+		<p><img src='/comm/images/kr/sub/txt_history.gif' alt='고용허가제도는 외국인근로자의 체계적인 도입, 관리를 통하여 중소기업의 인력난 완화와 국민경제의 균형있는 발전에 기여하고 있습니다.'></p>
+		<ul class='tab'>
+			<li><a href='javascript:fncMoveTab(&apos;01&apos;);'><img src='/comm/images/kr/sub/tab01.gif' alt='고용허가제의 의의와 연혁'></a></li>
+			<li><a href='javascript:fncMoveTab(&apos;02&apos;);'><img src='/comm/images/kr/sub/tab02.gif' alt='연도별 도입쿼터 안내'></a></li>
+			<li><a href='javascript:fncMoveTab(&apos;03&apos;);'><img src='/comm/images/kr/sub/tab03.gif' alt='운영조직'></a></li>
+			<li><a href='javascript:fncMoveTab(&apos;04&apos;);'><img src='/comm/images/kr/sub/tab06_on.gif' alt='허용업종소개'></a></li>
+			<li><a href='javascript:fncMoveTab(&apos;05&apos;);'><img src='/comm/images/kr/sub/tab04.gif' alt='사업장규모별구인인원소개'></a></li>
+			<li><a href='javascript:fncMoveTab(&apos;06&apos;);'><img src='/comm/images/kr/sub/tab05.gif' alt='각종보험 및 가입혜택'></a></li>
+		</ul>
+
+		<!-- Button -->
+		<div class='right'>
+			<a href='#wrap' title='새창열림' onclick='javascript:AreaPrintAll(document.getElementById(&apos;print&apos;).innerHTML);'><img src='/comm/images/kr/btn_print.gif' alt='프린트'></a>
+		</div>
+		<!-- //Button -->
+		<div id='print'>
+		<h4 class='typeE'>허용업종 소개</h4>
+		<h5 class='typeF'>2024년 일반 외국인근로자(E-9) 고용허용 업종</h5>
+
+<div class='tableF'>
+
+<table summary='2024년 일반 외국인근로자(E-9) 고용허용 업종'>
+    <caption>2024년 일반 외국인근로자(E-9) 고용허용 업종</caption>
+    <colgroup>
+    <col>
+    </colgroup>
+
+    <tbody>
+
+        <tr>
+        <th scope='col' width='15%'>구 분</th>
+        <th scope='col'>일반고용허가제(E-9)</th>
+        </tr>
+        
+        <tr>
+        <td> 제조업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 상시근로자 300인 미만 또는 자본금 80억원 이하 </p>
+            <p style='margin-left: 10pt;'> ※ 단, 상기 기준에 충족하지 않더라도 아래 증빙서류 제출 시 인정</p>
+            <p style='margin-left: 15pt;'> * 중소기업(지방중소기업청에서 발급한 ‘중소기업확인서’)</p>
+            <p style='margin-left: 15pt;'> * 비수도권 소재 뿌리산업 중견기업(한국생산기술연구원에서 발급한 ‘뿌리기업 확인서’ 및 한국중견기업연합회에서 발급한 ‘중견기업 확인서’)</p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 건설업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 모든 건설공사 </p>
+            <p style='margin-left: 10pt;'> ※ 발전소/제철소/석유화학 건설현장의 건설업체 중 건설면허가 산업환경설비인 경우에는 적용 제외</p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 농축산업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 작물재배업(011), 축산업(012), 작물재배 및 축산 관련 서비스업(014) </p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 어업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 연근해어업(03112), 양식어업(0321), 천일염 생산 및 암염 채취업(07220) </p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 임업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 임업 종묘 생산업(02011), 육림업(02012), 벌목업(02020), 임업 관련 서비스업(02040) </p>
+            <p style='margin-left: 10pt;'> ※ 위 업종 중 [산림기술 진흥 및 관리에 관한 법률] 제2조제7호에 따른 ‘산림사업시행업자’ 중 법인 및 [산림자원의 조성 및 관리에 관한 법률] 제16조에 따른 ‘종묘생산업자’ 중 법인에 한함</p>
+            <p style='margin-left: 10pt;'> ※ 표준직업분류상 ‘임업 단순 종사원(99102)’ 고용에 한함</p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 광업 </td>
+        <td class='left'>  
+            <p style='margin-left: 5pt;'> - 금속 광업(06), 비금속광물 광업(07) </p>
+            <p style='margin-left: 10pt;'> ※ 위 업종 중 연간 생산량 15만톤 이상의 [광업법] 제3조제3·4호에 따른 ‘채굴권’ 또는 ‘조광권’이 설정된 업체에 한함</p>
+            <p style='margin-left: 10pt;'> ※ 표준직업분류상 ‘광업 단순 종사원(91002)’ 고용에 한함</p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 서비스업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 건설폐기물처리업(3823) </p>
+            <p style='margin-left: 5pt;'> - 재생용 재료수집 및 판매업(46791) </p>
+            <p style='margin-left: 5pt;'> - 냉장ㆍ냉동 창고업(52102) (내륙에 위치한 업체) </p>
+            <p style='margin-left: 5pt;'> - 호텔업(55101), 휴양콘도 운영업(55103), 기타 일반 및 생활 숙박시설 운영업(55109) 중 호스텔업 </p>
+            <p style='margin-left: 10pt;'> ※ 위 업종 중 서울특별시·부산광역시·강원특별자치도·제주특별자치도 소재 업체에 한함</p>
+            <p style='margin-left: 10pt;'> ※ 표준직업분류상 ‘건물 청소원(94111)’, ‘주방 보조원(95220)’ 고용에 한함</p>
+            <p style='margin-left: 5pt;'> - 한식 음식점업(5611) </p>
+            <p style='margin-left: 10pt;'> ※ 음식점업 외국인력 허용 시범 지역에 소재한 ‘내국인 피보험자 수 5인 이상 사업장 중 5년 이상 영업을 유지하고 있는 사업체’ 또는 ‘내국인 피보험자 수 5인 미만 사업장 중 7년 이상 영업을 유지하고 있는 사업체’에 한함</p>
+            <p style='margin-left: 10pt;'> ※ 표준직업분류상 ‘주방 보조원(95220)’ 고용에 한함</p>
+            <p style='margin-left: 5pt;'> - 서적, 잡지 및 기타 인쇄물 출판업(581) </p>
+            <p style='margin-left: 5pt;'> - 음악 및 기타 오디오물 출판업(59201) </p>
+            <p style='margin-left: 5pt;'> - 건축물일반청소업(74211)</p>
+            <p style='margin-left: 10pt;'> ※ 위 업종 중 서울특별시·부산광역시·강원특별자치도·제주특별자치도에 소재한 ‘호텔업(55101), 휴양콘도 운영업(55103), 기타 일반 및 생활 숙박시설 운영업(55109) 중 호스텔업’ 등과 1:1 전속계약(청소 등 위탁)을 체결한 경우만 해당</p>
+            <p style='margin-left: 10pt;'> ※ 표준직업분류상 ‘건물 청소원(94111)’ 고용에 한함</p>
+            
+
+            
+            <p> ◈ 아래 업종의 표준직업분류상 하역 및 적재 단순종사자(92101)</p>
+            <p style='margin-left: 5pt;'> - 폐기물 수집, 운반, 처리 및 원료 재생업(38) </p>
+            <p style='margin-left: 10pt;'> ※ 단, [폐기물 수집, 운반, 처리 및 원료 재생업]의 경우는 폐기물  분류 업무도 포함</p>
+            <p style='margin-left: 5pt;'> - 음식료품 및 담배 중개업(46102) </p>
+            <p style='margin-left: 5pt;'> - 기타 신선 식품 및 단순 가공식품 도매업(46319) </p>
+            <p style='margin-left: 5pt;'> - 택배업(49401) </p>
+            <p style='margin-left: 5pt;'> - 기타 항공 운송지원 서비스업(52939) </p>
+            <p style='margin-left: 10pt;'> ※ [항공사업법] 시행규칙 제5조제2호에 따른 항공기하역업체</p>
+            <p style='margin-left: 5pt;'> - 항공 및 육상화물취급업(52941) </p>
+            <p style='margin-left: 10pt;'> ※ [축산물 위생관리법] 제2조제3호에 따른 식육을 운반하는 업체 및 [생활물류서비스산업발전법] 제2조제3호가목에 따른 택배서비스업체</p>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</div>
+
+<h5 class='typeF'>2024년 방문취업동포(H-2) 고용허용 업종</h5>
+<h4 class='typeE'>제조업, 건설업, 농축산업, 어업, 임업</h4>
+<div class='tableF'>
+<table summary='2024년 방문취업동포(H-9) 고용허용 업종'>
+    <caption>2024년 방문취업동포(H-2) 고용허용 업종</caption>
+    <colgroup>
+    <col>
+    </colgroup>
+<tbody>
+<tr>
+        <th scope='col' width='15%'>구 분</th>
+        <th scope='col'>방문취업동포(H-2)</th>
+        </tr>
+
+<tr>
+        <td> 제조업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 상시근로자 300인 미만 또는 자본금 80억원 이하 </p>
+            <p style='margin-left: 10pt;'> ※ 단, 상기 기준에 충족하지 않더라도 아래 증빙서류 제출 시 인정</p>
+            <p style='margin-left: 15pt;'> * 중소기업(지방중소기업청에서 발급한 ‘중소기업확인서’)</p>
+            <p style='margin-left: 15pt;'> * 비수도권 소재 뿌리산업 중견기업(한국생산기술연구원에서 발급한 ‘뿌리기업 확인서’ 및 한국중견기업연합회에서 발급한 ‘중견기업 확인서’)</p>
+        </td>
+        </tr>
+
+<tr>
+        <td> 건설업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 모든 건설공사 </p>
+            <p style='margin-left: 10pt;'> ※ 발전소/제철소/석유화학 건설현장의 건설업체 중 건설면허가 산업환경설비인 경우에는 적용 제외</p>
+        </td>
+        </tr>
+
+<tr>
+        <td> 농축산업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 작물재배업(011), 축산업(012), 작물재배 및 축산 관련 서비스업(014) </p>
+        </td>
+        </tr>
+        
+        <tr>
+        <td> 어업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 연근해어업(03112), 양식어업(0321), 천일염 생산 및 암염 채취업(07220) </p>
+        </td>
+        </tr>
+
+<tr>
+        <td> 임업 </td>
+        <td class='left'>
+            <p style='margin-left: 5pt;'> - 임업 종묘 생산업(02011), 육림업(02012), 벌목업(02020), 임업 관련 서비스업(02040) </p>
+            <p style='margin-left: 10pt;'> ※ 위 업종 중 [산림기술 진흥 및 관리에 관한 법률] 제2조제7호에 따른 ‘산림사업시행업자’ 중 법인 및 [산림자원의 조성 및 관리에 관한 법률] 제16조에 따른 ‘종묘생산업자’ 중 법인에 한함</p>
+        </td>
+        </tr>
+</tbody>
+</table>
+</div>
+
+<ul class='gry'>
+<li><strong class='point'>※ 단, ‘비수도권 소재 뿌리산업 중견기업’ 및 ‘임업’의 허용은 ｢출입국관리법 시행령｣ 개정 이후 시행
+</strong></li></ul>
+
+
+
+<p class='right'>
+</p>
+<h4 class='typeE'>광업, 서비스업(허용제외 업종이 아닌 경우 모두 허용)</h4>
+<h5>H-2 허용제외 업종</h5>
+<div class='tableF'>
+<table summary='광업, 서비스업(허용제외 업종)'>
+<caption>H-2 허용제외 업종</caption>
+<colgroup>
+<col>
+<col width='250'><col><col width='250'>
+</colgroup>
+<tbody>
+<tr>
+<th scope='col'>코드</th><th scope='col'>업종명</th>
+
+<th scope='col'>코드</th><th scope='col'>업종명</th>
+</tr>
+<tr>
+<td>05</td>
+<td>석탄, 원유 및 천연가스 광업</td><td>63</td><td>정보서비스업</td>
+</tr>
+<tr>
+<td rowspan='2'>35</td>
+<td rowspan='2'>전기, 가스, 증기 및 공기조절 공급업</td><td>64</td><td>금융업</td>
+
+</tr><tr>
+<td>65</td>
+<td>보험 및 연금업</td>
+
+</tr><tr>
+<td>36</td>
+<td>수도업</td><td>66</td><td>금융 및 보험 관련 서비스업</td>
+</tr><tr>
+<td>39</td>
+<td>환경 정화 및 복원업</td><td>68</td><td>부동산업</td>
+</tr><tr>
+<td>45</td>
+<td>자동차 및 부품 판매업</td><td>70</td><td>연구개발업</td>
+</tr><tr>
+<td rowspan='2'>49</td>
+<td rowspan='2'>육상 운송 및 파이프라인 운송업</td><td>71</td><td>전문 서비스업</td>
+</tr><tr>
+<td>72</td>
+<td>건축기술, 엔지니어링 및 기타 과학기술 서비스업</td>
+</tr><tr>
+<td>50</td>
+<td>수상 운송업</td><td rowspan='2'>74</td><td rowspan='2'>사업시설 관리 및 조경 서비스업</td>
+</tr><tr>
+<td>51</td>
+<td>항공 운송업</td>
+</tr><tr>
+<td>52</td>
+<td>창고 및 운송관련 서비스업</td><td>751</td><td>고용 알선 및 인력 공급업
+※ 단, 「가사근로자의 고용개선 등에 관한 법률」에 따른 가사서비스 제공기관은 제외</td>
+</tr><tr>
+<td>58</td>
+<td>출판업</td><td>84</td><td>공공행정, 국방 및 사회보장행정</td>
+</tr><tr>
+<td>61</td>
+<td>우편 및 통신업</td><td>85</td><td>교육 서비스업</td>
+</tr><tr>
+<td>62</td>
+<td>컴퓨터 프로그래밍, 시스템 통합 및 관리업</td><td>99</td><td>국제 및 외국기관</td>
+</tr></tbody></table></div>
+<ul class='gry'>
+<li><strong class='point'>※ 서비스업: 한국표준산업분류 중 대분류 E, G～U (서비스업 분류고시(통계청고시 제2018-390호, ’18.9.21)에 따름)
+</strong></li>
+<li><strong class='point'>※ 단, ‘공공행정, 국방 및 사회보장행정’, ‘국제 및 외국기관’ 업종의 허용 제외는 ｢출입국관리법 시행령｣ 개정 이후 시행
+</strong></li>
+</ul>
+<div class='tableF'>
+<table summary='산업 중분류 단위에서 허용제외 업종에 해당하더라도 아래 기존 허용업종은 계속 허용'>
+<caption>허용업종</caption>
+<colgroup>
+<col>
+
+</colgroup>
+<tbody>
+<tr>
+<th scope='col'>◈ 산업 중분류 단위에서 허용제외 업종에 해당하더라도 아래 기존 허용업종은 계속 허용</th>
+</tr>
+<tr>
+<td><ul>- 육상여객 운송업(492) </ul>
+<ul>- 냉장·냉동 창고업(52102) (내륙에 위치한 업체)</ul>
+<ul>- 물류터미널 운영업(52913) * 단, 표준직업분류 상 하역 및 적재 단순종사자(92101)에 한함</ul>
+<ul>- 항공 및 육상화물취급업(52941)</ul> <font color='red'>
+</font><ul><font color='red'>* 단,「축산물 위생관리법」 제2조제3호에 따른 식육 운송업체,「생활물류서비스사업발전법」제2조제3호나목에 따른 택배서비스업체(택배 분야의 경우 표준직업분류상 하역 및 적재 단순종사자(92101))에 한함</font></ul>
+<ul>- 서적, 잡지 및 기타 인쇄물 출판업(581)</ul>
+<ul>- 사업시설 유지관리 서비스업(7410)</ul>
+<ul>- 건물 및 산업설비 청소업(7421)</ul>
+</td>
+</tr>
+</tbody></table></div>
+
+
+<div class='tableF'>
+<table summary='산업 중분류 단위에서 허용제외 업종에 해당하더라도 아래 기존 허용업종은 계속 허용'>
+<caption>허용업종</caption>
+<colgroup>
+<col>
+
+</colgroup>
+<tbody>
+<tr>
+<th scope='col'>◈ 아래 업종의 표준직업분류상 하역 및 적재 단순종사자(92101)</th>
+</tr>
+<tr>
+<td><ul>- 택배업(49401), 물류터미널 운영업(52913) </ul>
+<ul>- 기타 항공 운송지원 서비스업(52939)</ul>
+<ul> ※ ｢항공사업법｣ 시행규칙 제5조제2호에 따른 항공기하역업체</ul>
+<ul>- 항공 및 육상화물취급업(52941)</ul> 
+<ul> ※ ｢생활물류서비스산업발전법｣ 제2조제3호가목에 따른 택배서비스업체</ul>
+</td>
+</tr>
+</tbody></table>
+
+<ul class='gry'>
+<li><strong class='point'>※단, ‘택배업’(49401) 및 ‘기타 항공 운송지원 서비스업’(52939)의 허용은 ｢출입국관리법 시행령｣ 개정 이후 시행</strong></li></ul><strong class='point'>
+
+</strong></div><strong class='point'>
+
+		</strong></div><strong class='point'>
+	</strong></div><strong class='point'>
+
+<!-- //Contents -->
+</strong></div><strong class='point'>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</strong>
+
+<!-- // [REQ-PD-F-0015] 허용업종소개 End -->
+
+<!-- [REQ-PD-F-0015] DEL-Start -->
+
+<!-- [REQ-PD-F-0015] DEL-End -->
+
+﻿﻿
+<!--e:content -->
+<!--s:quick -->
+<div id="quick">
+    <h2>QUICK MENU</h2>
+    <dl>        
+        <dt class="customer">고객센터</dt>
+        <dd><a href="/eo/VocFaqLst.eo">자주묻는질문</a></dd>
+        <dd><a href="/eo/MyConsultLst.eo">나의상담내역</a></dd>
+        
+    </dl>
+</div>
+<!--e:quick -->
+
+<script type="text/javascript" defer="defer">
+    var keylog = "";
+
+    function fncHandleRequest(xmlHttp, executeFunction) {
+        return function() {
+            if(xmlHttp.readyState == 4) {
+                if(xmlHttp.status == 200) {
+                    executeFunction(xmlHttp.responseXML);
+                }
+            }
+        }
+    }
+
+    function fncRslt(xmlDoc) {
+        var rsltData = xmlDoc.getElementsByTagName("SINGLE");
+
+        if(rsltData != null && rsltData.length > 0) {
+            if(rsltData[0].getElementsByTagName("cnt").length > 0) {
+                alert(rsltData[0].getElementsByTagName("time")[0].firstChild.nodeValue + "\n" +
+                      "loop : " + rsltData[0].getElementsByTagName("cnt")[0].firstChild.nodeValue);
+            }
+        }else{
+            alert("fail!");
+        }
+    }
+    //WA마크
+    function fncWAPop() {
+        var w = 555;
+        var h = 810;
+        var leftPosition = (screen.width - w) / 2;
+        var topPosition = (screen.height - h) / 2;
+        var win = window.open("/comm/pop/wamark.eo", "new", "width=" + w + ", height=" + h + ", left=" + leftPosition + ", top=" + topPosition + ", resizable=no, scrollbars=no;");
+        win.focus();
+    }
+    
+  //메뉴 강조 
+    function fnc_impactMenu(){
+        gnavi = -1;
+        if($('#lnb').length == 1) {
+            leftClass = $('#lnb').attr("class");
+            if(leftClass === 'e9') {
+                gnavi = 1;
+            } else if(leftClass === 'h2') {
+                gnavi = 2;
+            } else if(leftClass === 'employment') {
+                gnavi = 3;
+            } else if(leftClass === 'library') {
+                gnavi = 4;
+            } else if(leftClass === 'customer') {
+                gnavi = 5;
+            }
+        }
+        if(gnavi > 0) {
+	        $('#gnavibox .gnavi:nth-child('+gnavi+')').addClass("on");
+	        const gnavim = Object.values($('#gnavibox .gnavi:nth-child('+gnavi+').on div ul li')).find(function(li) {
+	        	return $(li).text().trim() === $('#lnb.'+leftClass+' ul > li.active > a:first' ).text().trim();
+	        });
+	        
+	        if(gnavim){
+	        	$(gnavim).addClass("on");	
+	        }
+        }
+    }
+
+    setTimeout(() => {
+    	fnc_impactMenu();
+	}, 200);
+</script>
+</div><!--e:container -->
+</div><!--e:sub_container -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <footer>
+        <div class="footin">
+            <div class="foot_logo">
+                <a href="http://www.moel.go.kr" target="_blank" title="새창열림"><img src="/comm/img/kr/main_new/foot_logo01.gif" alt="고용노동부"></a>
+                <a href="http://www.keis.or.kr" target="_blank" title="새창열림" class="keis"><img src="/comm/img/kr/main_new/foot_logo02.gif" alt="한국고용정보원"></a>
+            </div>
+            <div class="familysite">
+                <ul>
+                    <li><a href="https://www.keis.or.kr/keis/ko/bbs/270/list.do" target="_blank" title="새창열림" class="active"><strong>개인정보처리방침</strong></a></li>
+                    <li><a href="/eo/eps_intro.eo">EPS소개</a></li>
+                    <li class="viewer"> 뷰어다운로드&nbsp;
+                        <a href="http://www.hancom.com/downLoad.downPU.do?mcd=002" target="_blank" title="한글뷰어다운로드 새창열림"><img src="/comm/img/kr/main_new/ico_hwp.gif" alt="한글뷰어다운로드"></a>
+                        <a href="http://www.microsoft.com/downloads/details.aspx?FamilyID=3657ce88-7cfa-457a-9aec-f4f827f20cac&amp;DisplayLang=ko" target="_blank" title="워드뷰어다운로드 새창열림"><img src="/comm/img/kr/main_new/ico_word.gif" alt="워드뷰어다운로드"></a>
+                        <a href="http://www.microsoft.com/downloads/details.aspx?FamilyID=1cd6acf9-ce06-4e1c-8dcf-f33f669dbc3a&amp;DisplayLang=ko" target="_blank" title="엑셀뷰어다운로드 새창열림"><img src="/comm/img/kr/main_new/ico_xlsx.gif" alt="엑셀뷰어다운로드"></a>
+                        <a href="http://www.microsoft.com/downloads/details.aspx?FamilyID=048dc840-14e1-467d-8dca-19d2a8fd7485&amp;DisplayLang=ko" target="_blank" title="파워포인트뷰어다운로드 새창열림"><img src="/comm/img/kr/main_new/ico_pptx.gif" alt="파워포인트뷰어다운로드"></a>
+                        <a href="http://get.adobe.com/kr/reader/" target="_blank" title="PDF뷰어다운로드 새창열림"><img src="/comm/img/kr/main_new/ico_pdf.gif" alt="PDF뷰어다운로드"></a>
+                    </li>
+                </ul>
+
+                <address>
+                    27740 충청북도 음성군 맹동면 태정로 6 한국고용정보원
+                    <p>홈페이지 전산 이용 문의 : Tel. 1577-7114 (유료, 한국고용정보원 고객상담센터 평일 09:00~18:00)</p>
+                    <p> 고용·노동 분야 제도 문의 : 국번없이 Tel. 1350 (유료, 고용노동부 고객상담센터 평일 09:00~18:00)</p>
+                </address>
+                <p class="copyright">Copyright ⓒ 2013 고용노동부 All Rights Reserved.</p>
+
+            </div>
+
+            <div class="bnb">
+            		<a href="javascript:window.open('https://www.eprivacy.or.kr/front/certifiedSiteMark/certifiedSiteMarkPopup.do?certCmd=E&amp;certNum=2025-E-R009','seal','width=527,height=720,location=no,status=no,scrollbars=no')" title="새창열림"></a>
+             <!--   <a href="javascript:window.open('https://www.eprivacy.or.kr/front/certifiedSiteMark/certifiedSiteMarkPopup.do?certCmd=E&amp;certNum=2025-E-R009','seal','width=527,height=720,location=no,status=no,scrollbars=no')" title="새창열림"><img src="/comm/images/kr/privacy/eprivacy_text_small.png" alt="ePRIVACY 인증서"></a>-->
+             <!--    <a href="javascript:fncWAPop();" title="국가 공인 인증기관 : 웹와치(새창열기)"><img src="/comm/img/kr/main_new/wamark2024.png" width="88" alt="과학기술정보통신부 WA(WEB접근성) 품질인증 마크, 웹와치(WebWatch) 2024.9.5 ~ 2025.9.4"></a>  -->
+                <a href="javascript:fncWAPop();" title="국가 공인 인증기관 : 웹와치(새창열기)"><img src="/comm/img/kr/main_new/webwatch(2025).jpg" width="88" alt="과학기술정보통신부 WA(WEB접근성) 품질인증 마크, 웹와치(WebWatch) 2025.10.17 ~ 2026.10.16"></a>
+                <a href="https://apps.apple.com/kr/app/외국인고용관리/id702045889" target="_blank" title="새창열림"><img src="/comm/img/kr/main_new/qr_iphone.gif" alt="외국인고용관리APP(앱 스토어)다운로드 QR 코드 - 아이폰"></a>
+                <a href="https://play.google.com/store/apps/details?id=kr.go.eps.m" target="_blank" title="새창열림"><img src="/comm/img/kr/main_new/qr_android.gif" alt="외국인고용관리APP(구글플레이스토어)다운로드 QR 코드 - 안드로이드"></a>
+            </div>
+            <!-- /bnb -->
+        </div>
+        <!-- e:footin -->
+    </footer>
+</div>
+<!-- e:wrap -->
+</body>
+</html>
