@@ -73,7 +73,8 @@ missions/
 
 | 파일 | 목적 |
 |---|---|
-| 없음 | 현재 active mission 없음 |
+| `014-agent-output-aggregation.md` | 여러 agent 결과를 표준 schema와 Aggregator node로 병합 |
+| `015-workforce-subagents.md` | 인력 확보 Agent 하위 5개 업무 agent 구현 |
 
 ## 7. 완료된 Mission 목록
 

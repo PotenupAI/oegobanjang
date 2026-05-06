@@ -87,6 +87,7 @@ oegobanjang
 │  │  │  │     ├─ intent_router.py   # 사용자 요청 의도 분류
 │  │  │  │     ├─ planner.py         # 실행 계획 수립
 │  │  │  │     ├─ executor.py        # Agent/Tool 실행 제어
+│  │  │  │     ├─ aggregator.py      # Agent별 표준 output을 하나의 aggregated_output으로 병합
 │  │  │  │     ├─ approval_gate.py   # 승인 필요 여부 판단
 │  │  │  │     ├─ evidence_logger.py # Evidence Log 후보 이벤트 생성
 │  │  │  │     └─ final_response.py  # 최종 응답 생성
@@ -95,9 +96,13 @@ oegobanjang
 │  │  │  │  └─ pii_filter.py         # 외국인등록번호/여권번호/전화번호 마스킹
 │  │  │  │
 │  │  │  ├─ agents/                  # 업무별 전문 AI Agent
-│  │  │  │  ├─ hiring_agent.py       # 인력 확보, 쿼터 판단, 채용 요청 처리
-│  │  │  │  ├─ contact_agent.py      # 다국어 메시지 생성, 응답 해석
-│  │  │  │  └─ visa_agent.py         # 비자/체류/서류 리스크 관리
+│  │  │  │  ├─ hiring_agent.py       # 인재 요건·매칭 초안, 사업장/채용요건 확인
+│  │  │  │  ├─ candidate_fit_agent.py# 후보 추천 없이 후보 서류/입력 누락만 검토
+│  │  │  │  ├─ visa_agent.py         # 비자/체류 D-day와 계약 충돌 리스크 관리
+│  │  │  │  ├─ document_package_agent.py # 서류 체크리스트와 행정사 패키지 초안 생성
+│  │  │  │  ├─ approval_handoff_agent.py # 승인 필요 외부 작업을 PENDING 상태로 정리
+│  │  │  │  ├─ rag_support.py        # agent가 RAG source_id 근거를 참조하는 helper
+│  │  │  │  └─ contact_agent.py      # 다국어 메시지 생성, 응답 해석
 │  │  │  │
 │  │  │  ├─ rag/                     # RAG 검색 관련 모듈
 │  │  │  │  ├─ retriever.py          # 문서 검색 로직
@@ -123,6 +128,7 @@ oegobanjang
 │  │  │  └─ schemas/                 # Agent 내부 데이터 스키마
 │  │  │     ├─ state.py              # Agent State 세부 타입
 │  │  │     ├─ tool.py               # Tool 실행 결과 스키마
+│  │  │     ├─ agent_output.py       # AgentOutput, AggregatedCaseOutput 표준 스키마
 │  │  │     └─ evidence.py           # Evidence 후보 이벤트 스키마
 │  │  │
 │  │  └─ tasks/                      # 백그라운드/예약 작업 영역
@@ -133,6 +139,9 @@ oegobanjang
 │  ├─ tests/                         # 백엔드 전체 테스트
 │  │  ├─ test_health.py              # 서버 health API 테스트
 │  │  ├─ test_agent_workflow.py      # Agent Runtime 전체 흐름 테스트
+│  │  ├─ test_agent_aggregation.py   # AgentOutput aggregation과 workflow 연결 테스트
+│  │  ├─ test_workforce_agents.py    # workforce 하위 5개 agent 동작 테스트
+│  │  ├─ test_document_check_tool.py # 필수 서류 누락 계산과 source_id 계약 테스트
 │  │  ├─ test_guardrails.py          # 금지/승인 필요 작업 가드레일 테스트
 │  │  ├─ test_approvals.py           # 승인 생성/처리 테스트
 │  │  ├─ test_evidence.py            # Evidence Log 저장/조회 테스트
@@ -186,6 +195,7 @@ oegobanjang
 │  ├─ normalizers/                   # 텍스트 정제, 메타데이터 표준화
 │  ├─ seed/
 │  │  ├─ sample_policy_docs.jsonl    # 샘플 정책 문서 데이터
+│  │  ├─ document_requirements.csv   # 케이스/비자별 필수 서류와 RAG source_id 매핑
 │  │  └─ sample_required_docs.jsonl  # 샘플 필수 서류 데이터
 │  ├─ raw/                           # 원본 문서 저장 위치, 대용량 파일은 Git 제외 권장
 │  ├─ processed/                     # 전처리된 문서 저장 위치, Git 제외 권장
@@ -207,6 +217,10 @@ oegobanjang
 │  ├─ DB_SCHEMA.md                   # 주요 DB 테이블 설계
 │  ├─ DECISIONS.md                   # 기술/제품 의사결정 기록
 │  └─ HANDOFF.md                     # 팀원/AI 에이전트에게 넘길 작업 인수인계 문서
+│  ├─ journal/                       # 날짜별 작업 로그와 Notion/mission 상태 비교 기록
+│  │  ├─ 2026-05-04.md               # 새 구조 이식, RAG, schema, guardrail 작업 기록
+│  │  ├─ 2026-05-05.md               # Notion 실행 단위와 Mission 001~007 상태 비교
+│  │  └─ 2026-05-06.md               # completed 001~013 및 제품화 gap 상태 비교
 │  ├─ legacy/phase-harness/          # 예전 phase 기반 하네스 아카이브
 │  │  ├─ README.md                   # 아카이브 목적과 현재 구조 대응 설명
 │  │  ├─ ENGINEERING_PLAN.md         # 예전 Phase 1C/2A/3 의사결정 기록
@@ -215,12 +229,15 @@ oegobanjang
 │  │  ├─ REMAINING_EXECUTION.md      # 예전 phase 실행 순서 메모
 │  │  └─ phases/mvp/*.md             # 예전 phase 파일 원문 보관
 │  └─ superpowers/plans/             # Codex 실행용 상세 구현 계획
-│     └─ 2026-05-06-rag-source-and-workforce-agent-hardening.md # RAG 소스/인력 확보 에이전트 하드닝 계획
+│     ├─ 2026-05-06-rag-source-and-workforce-agent-hardening.md # RAG 소스/인력 확보 에이전트 하드닝 계획
+│     └─ 2026-05-06-agent-output-aggregation.md # 여러 agent 결과를 Aggregator node로 수렴시키는 구현 계획
 │
 ├─ missions/                         # AI/팀원에게 줄 작업 단위
 │  ├─ README.md                      # mission 작성 규칙, active/completed 사용법
 │  ├─ active/                        # 현재 진행할 작업 지시서
-│  │  └─ .gitkeep                    # active mission이 없을 때 폴더 보존
+│  │  ├─ .gitkeep                    # active mission이 없을 때 폴더 보존
+│  │  ├─ 014-agent-output-aggregation.md # 여러 agent 결과를 표준 output으로 병합하는 작업
+│  │  └─ 015-workforce-subagents.md  # workforce 하위 5개 업무 agent 구현 작업
 │  └─ completed/                     # 완료된 mission 보관
 │     ├─ 001-agent-runtime-skeleton.md# Agent Runtime 뼈대 구현 완료 미션
 │     ├─ 002-rag-indexing.md         # RAG 인덱싱 파이프라인 구현 완료 미션

@@ -21,12 +21,20 @@ def create_plan(context: Mapping[str, Any]) -> dict[str, Any]:
     required_agents: list[str] = []
     if "HIRING" in detected_intents or case_type in {"new_hiring", "workplace_change_intake"}:
         required_agents.append("workforce_agent")
+    if "CANDIDATE_REVIEW" in detected_intents:
+        required_agents.append("candidate_fit_agent")
     if "VISA_CHECK" in detected_intents:
         required_agents.append("visa_document_agent")
     if "DOCUMENT_CHECK" in detected_intents and "visa_document_agent" not in required_agents:
         required_agents.append("visa_document_agent")
+    if "DOCUMENT_CHECK" in detected_intents:
+        required_agents.append("document_package_agent")
+    if "HANDOFF" in detected_intents:
+        required_agents.append("document_package_agent")
+        required_agents.append("approval_handoff_agent")
     if "CONTACT" in detected_intents:
         required_agents.append("communication_agent")
+        required_agents.append("approval_handoff_agent")
     if "BRIEFING" in detected_intents:
         required_agents.append("briefing_agent")
     if case_type == "workplace_change_intake":

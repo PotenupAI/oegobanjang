@@ -29,7 +29,10 @@ def main() -> int:
     args = parser.parse_args()
 
     manifest = build_persistent_index(chunk_path=Path(args.chunks), output_dir=Path(args.output))
-    print(f"Wrote LangChain-compatible index: {manifest['document_count']} documents -> {args.output}")
+    print(
+        f"Wrote {manifest['index_type']} index: "
+        f"{manifest['document_count']} documents -> {args.output}"
+    )
     return 0
 
 

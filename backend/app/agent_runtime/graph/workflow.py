@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from app.agent_runtime.guardrails import check_output, enforce_guardrails
+from app.agent_runtime.graph.nodes.aggregator import aggregate_agent_outputs
 from app.agent_runtime.graph.nodes.approval_gate import evaluate_approval
 from app.agent_runtime.graph.nodes.evidence_logger import append_event
 from app.agent_runtime.graph.nodes.executor import execute_plan
@@ -68,7 +69,10 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
             "plan": plan,
             "input_state": input_state,
             "case_type": case_type,
+            "company_id": incoming.get("company_id"),
             "current_state": current_state,
+            "detected_intents": detected_intents,
+            "user_message": incoming.get("user_message", ""),
             "retrieved_evidence": incoming.get("retrieved_evidence") or {},
         }
     )
@@ -80,6 +84,17 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
         event_type="tool_executed",
         input_data={"plan": plan, "input_state": input_state},
         output_data=execution,
+    )
+
+    aggregated_output = aggregate_agent_outputs({"execution": execution})
+    append_event(
+        evidence_events,
+        work_item_id=work_item_id,
+        agent_id="aggregator",
+        action_type="execute_tool",
+        event_type="agent_outputs_aggregated",
+        input_data={"agent_output_keys": list(execution.get("agent_outputs", {}).keys())},
+        output_data=aggregated_output,
     )
 
     append_event(
@@ -96,6 +111,7 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
         {
             **incoming,
             "execution": execution,
+            "aggregated_output": aggregated_output,
             "approval_required": True,
         }
     )
@@ -200,11 +216,13 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
                 "input_state": input_state,
                 "plan": plan,
                 "execution": execution,
+                "aggregated_output": aggregated_output,
                 "approval": approval,
                 "approval_required": approval["required"],
                 "final_response": {
                     "status": "blocked",
                     "approval_required": approval["required"],
+                    "aggregated_output": aggregated_output,
                     "message": "LLM 판단 생성 중 오류가 발생했습니다.",
                     "error": judgment_error,
                 },
@@ -239,6 +257,7 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
             "next_state": next_state,
             "approval": approval,
             "execution": execution,
+            "aggregated_output": aggregated_output,
             "judgment_report": judgment_report,
         }
     )
@@ -264,6 +283,7 @@ def run_workflow(payload: dict[str, Any] | None) -> dict[str, Any]:
         "input_state": input_state,
         "plan": plan,
         "execution": execution,
+        "aggregated_output": aggregated_output,
         "approval": approval,
         "approval_required": approval["required"],
         "final_response": final_response,

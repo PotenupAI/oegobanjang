@@ -56,10 +56,14 @@ def _detect_intents(payload: Mapping[str, Any]) -> list[str]:
         intents.append("WORKPLACE_CHANGE")
     if _contains_any(user_message, ("채용", "hiring", "hire", "추가 채용", "신규채용")):
         intents.append("HIRING")
+    if _contains_any(user_message, ("후보", "candidate", "지원자")) or _has_candidates(payload):
+        intents.append("CANDIDATE_REVIEW")
     if _contains_any(user_message, ("비자", "visa", "체류", "만료", "passport", "e-9", "e9", "출입국")):
         intents.append("VISA_CHECK")
-    if _contains_any(user_message, ("서류 누락", "누락 여부", "문서 확인", "document check", "서류 확인")):
+    if _contains_any(user_message, ("서류", "서류 누락", "누락 여부", "문서 확인", "document check", "서류 확인")):
         intents.append("DOCUMENT_CHECK")
+    if _contains_any(user_message, ("행정사", "노무사", "패키지", "전문가", "handoff", "전달")):
+        intents.append("HANDOFF")
     if _contains_any(user_message, ("메시지", "문자", "카톡", "발송", "전송", "보내줘", "보내")):
         intents.append("CONTACT")
     if _contains_any(user_message, ("브리핑", "요약", "보고", "briefing", "brief")):
@@ -70,6 +74,11 @@ def _detect_intents(payload: Mapping[str, Any]) -> list[str]:
 
 def _contains_any(text: str, needles: tuple[str, ...]) -> bool:
     return any(needle in text for needle in needles)
+
+
+def _has_candidates(payload: Mapping[str, Any]) -> bool:
+    input_state = payload.get("input_state")
+    return isinstance(input_state, Mapping) and bool(input_state.get("candidates"))
 
 
 def _dedupe(values: list[str]) -> list[str]:

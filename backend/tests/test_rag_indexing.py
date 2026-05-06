@@ -16,6 +16,12 @@ from scripts.ingest_rag_docs import html_to_text, pdf_to_text, split_semantic_te
 from app.agent_runtime.rag.citation import can_use_as_answer_evidence
 from app.agent_runtime.rag.evaluate import evaluate_retrieval
 from app.agent_runtime.rag.retriever import PolicyRetriever, load_chunks
+from app.agent_runtime.rag.vector_store import (
+    build_chroma_ready_records,
+    build_persistent_chroma_collection,
+    query_chroma_collection,
+)
+from app.agent_runtime.langchain_runtime.vectorstore import build_persistent_index
 
 
 def _sample_document() -> dict[str, object]:
@@ -222,3 +228,54 @@ def test_pdf_loader_returns_text_for_collected_pdf() -> None:
     text = pdf_to_text(Path("data-pipeline/raw/law_form_employment_change_001.pdf"))
 
     assert text
+
+
+def test_build_persistent_chroma_collection_can_query_chunks(tmp_path: Path) -> None:
+    chunks = build_chunks([_sample_document()])
+    collection = build_persistent_chroma_collection(
+        chunks,
+        persist_path=tmp_path / "chroma",
+        collection_name="workbridge_policy_test",
+        reset=True,
+    )
+
+    results = query_chroma_collection(collection, "고용허가 신청", top_k=1)
+
+    assert results
+    assert results[0]["source_id"] == "seed_eps_procedure_demo_001"
+    assert results[0]["chunk_id"] == "seed_eps_procedure_demo_001__0001"
+
+
+def test_chroma_records_assign_unique_ids_for_duplicate_chunk_ids() -> None:
+    chunks = build_chunks([_sample_document()])
+    duplicate = {**chunks[0], "text": "고용허가 신청 추가 확인"}
+
+    records = build_chroma_ready_records([chunks[0], duplicate])
+
+    assert [record["id"] for record in records] == [
+        "seed_eps_procedure_demo_001__0001",
+        "seed_eps_procedure_demo_001__0001__dup_0001",
+    ]
+    assert records[1]["metadata"]["original_chunk_id"] == "seed_eps_procedure_demo_001__0001"
+
+
+def test_langchain_index_builder_writes_real_chroma_store(tmp_path: Path) -> None:
+    chunks = build_chunks([_sample_document()])
+    chunk_path = tmp_path / "all_chunks.jsonl"
+    output_dir = tmp_path / "chroma_langchain"
+    write_chunks_jsonl(chunks, chunk_path)
+
+    manifest = build_persistent_index(chunk_path=chunk_path, output_dir=output_dir)
+
+    assert manifest["index_type"] == "chroma_persistent"
+    assert manifest["collection_name"] == "workbridge_policy"
+    assert manifest["document_count"] == len(chunks)
+    assert Path(str(manifest["chroma_sqlite_path"])).is_file()
+    assert (output_dir / "chroma.sqlite3").is_file()
+    assert (output_dir / "documents.jsonl").is_file()
+
+    collection = manifest["collection"]
+    results = query_chroma_collection(collection, "고용허가 신청", top_k=1)
+
+    assert results
+    assert results[0]["source_id"] == "seed_eps_procedure_demo_001"

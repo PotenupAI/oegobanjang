@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "bing-image-downloader>=1.1.2",
     "fastapi>=0.135.2",
+    "chromadb>=0.5.23",
     "grad-cam>=1.5.5",
     "jupyter>=1.1.1",
     "matplotlib>=3.10.8",
@@ -28,6 +29,7 @@ dependencies = [
     "altair<5",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
+    "pytest>=8.4.2",
     "pillow>=12.1.1",
     "optuna>=4.7.0",
     "mtcnn>=1.0.0",

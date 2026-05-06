@@ -14,6 +14,7 @@ def build_final_response(context: Mapping[str, Any]) -> dict[str, Any]:
         "approval_required": context.get("approval", {}).get("required", True),
         "draft": context.get("execution", {}).get("draft"),
         "tool_results": context.get("execution", {}).get("tool_results", {}),
+        "aggregated_output": context.get("aggregated_output", {}),
     }
     if context.get("judgment_report"):
         response["judgment_report"] = context["judgment_report"]

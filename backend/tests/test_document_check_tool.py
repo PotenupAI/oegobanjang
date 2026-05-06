@@ -22,6 +22,7 @@ def test_calculate_missing_documents_for_new_hiring_e9() -> None:
     assert "criminal_record" in result["output"]["missing_documents"]
     assert "passport" not in result["output"]["missing_documents"]
     assert result["risk_flags"] == ["missing_required_documents"]
+    assert set(result["citations"]) >= {"eps_employer_process_001", "eps_application_guide_001"}
 
 
 def test_calculate_missing_documents_requires_case_type() -> None:
@@ -53,3 +54,18 @@ def test_calculate_missing_documents_accepts_db_document_state() -> None:
     assert "passport" not in result["output"]["missing_documents"]
     assert "health_certificate" not in result["output"]["missing_documents"]
     assert "criminal_record" in result["output"]["missing_documents"]
+
+
+def test_document_requirements_use_manifest_source_ids() -> None:
+    result = calculate_missing_documents(
+        {
+            "case_type": "stay_extension",
+            "visa_type": "E-9",
+            "held_documents": ["passport_copy"],
+        },
+        requirements_path=Path("data-pipeline/seed/document_requirements.csv"),
+    )
+
+    assert result["status"] == "SUCCESS"
+    assert set(result["citations"]) >= {"gov24_stay_extension_001", "hikorea_stay_guide_001"}
+    assert all(not source_id.startswith("MOE-") for source_id in result["citations"])
