@@ -101,6 +101,7 @@ oegobanjang
 │  │  │  │  ├─ visa_agent.py         # 비자/체류 D-day와 계약 충돌 리스크 관리
 │  │  │  │  ├─ document_package_agent.py # 서류 체크리스트와 행정사 패키지 초안 생성
 │  │  │  │  ├─ approval_handoff_agent.py # 승인 필요 외부 작업을 PENDING 상태로 정리
+│  │  │  │  ├─ briefing_agent.py     # 케이스 보고/요약용 내부 브리핑 초안 생성
 │  │  │  │  ├─ rag_support.py        # agent가 RAG source_id 근거를 참조하는 helper
 │  │  │  │  └─ contact_agent.py      # 다국어 메시지 생성, 응답 해석
 │  │  │  │

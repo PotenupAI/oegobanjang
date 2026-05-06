@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.agent_runtime.agents.approval_handoff_agent import prepare_approval_handoff
+from app.agent_runtime.agents.briefing_agent import build_case_briefing
 from app.agent_runtime.agents.candidate_fit_agent import evaluate_candidate_fit
 from app.agent_runtime.agents.document_package_agent import build_document_package
 from app.agent_runtime.agents.hiring_agent import build_workforce_requirements
@@ -138,3 +139,38 @@ def test_approval_handoff_agent_keeps_external_actions_pending() -> None:
         "send_expert_package",
         "complete_case",
     }
+
+
+def test_briefing_agent_builds_internal_summary_without_external_delivery() -> None:
+    output = build_case_briefing(
+        {
+            "case_type": "new_hiring",
+            "detected_intents": ["HIRING", "BRIEFING"],
+            "user_message": "E-9 신규 채용 건 보고용으로 요약해줘.",
+            "input_state": {
+                "company_id": "company_001",
+                "requested_headcount": 2,
+                "industry": "manufacturing",
+                "visa_type": "E-9",
+            },
+            "agent_outputs": {
+                "workforce_agent": {
+                    "agent_id": "workforce_agent",
+                    "summary": "사업장 조건과 채용 준비 항목을 정리했습니다.",
+                    "missing_inputs": ["job_role"],
+                    "next_actions": ["직무 정보를 확인해 주세요."],
+                    "evidence_sources": [
+                        {"source_id": "eps_employer_process_001", "evidence_grade": "B"}
+                    ],
+                }
+            },
+        }
+    )
+
+    assert output.agent_id == "briefing_agent"
+    assert output.status == "draft"
+    assert output.raw["sent"] is False
+    assert output.raw["briefing_type"] == "internal_case_briefing"
+    assert "job_role" in output.missing_inputs
+    assert any(source.source_id == "eps_employer_process_001" for source in output.evidence_sources)
+    assert any(action.action_type == "share_internal_briefing" for action in output.approval_required_actions)

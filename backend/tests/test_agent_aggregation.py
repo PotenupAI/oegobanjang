@@ -106,3 +106,32 @@ def test_workflow_returns_workforce_subagent_outputs_and_aggregated_output() -> 
     assert result["aggregated_output"]["missing_documents"]
     assert result["final_response"]["aggregated_output"]["approval_required"] is True
     assert any(event["event_type"] == "agent_outputs_aggregated" for event in result["evidence_events"])
+
+
+def test_workflow_executes_real_briefing_agent_for_summary_requests() -> None:
+    result = run_workflow(
+        {
+            "request_id": "req_briefing_agent",
+            "user_id": "user_001",
+            "company_id": "company_001",
+            "user_message": "E-9 신규 채용 진행 상황을 보고용으로 요약해줘.",
+            "case_type": "new_hiring",
+            "input_state": {
+                "company_id": "company_001",
+                "requested_headcount": 2,
+                "industry": "manufacturing",
+                "visa_type": "E-9",
+            },
+        }
+    )
+
+    briefing_output = result["execution"]["agent_outputs"]["briefing_agent"]
+
+    assert briefing_output["status"] == "draft"
+    assert briefing_output["raw"]["sent"] is False
+    assert "briefing_agent placeholder" not in str(result["execution"])
+    assert "briefing_agent" in result["aggregated_output"]["agent_outputs"]
+    assert any(
+        action["action_type"] == "share_internal_briefing"
+        for action in result["aggregated_output"]["approval_required_actions"]
+    )

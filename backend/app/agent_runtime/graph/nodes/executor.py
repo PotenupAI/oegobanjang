@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from app.agent_runtime.agents.approval_handoff_agent import prepare_approval_handoff
+from app.agent_runtime.agents.briefing_agent import build_case_briefing
 from app.agent_runtime.agents.candidate_fit_agent import evaluate_candidate_fit
 from app.agent_runtime.agents.document_package_agent import build_document_package
 from app.agent_runtime.agents.hiring_agent import build_hiring_draft
@@ -107,10 +108,17 @@ def execute_plan(context: Mapping[str, Any]) -> dict[str, Any]:
         tool_results["approval_handoff_agent"] = output.raw
 
     if "briefing_agent" in required_agents:
-        tool_results["briefing_agent"] = {
-            "status": "mocked",
-            "reason": "briefing_agent placeholder",
-        }
+        output = build_case_briefing(
+            {
+                "case_type": case_type,
+                "input_state": input_state,
+                "detected_intents": context.get("detected_intents", []),
+                "user_message": context.get("user_message", ""),
+                "agent_outputs": agent_outputs,
+            }
+        )
+        agent_outputs["briefing_agent"] = output.model_dump(mode="json")
+        tool_results["briefing_agent"] = output.raw
 
     output: dict[str, Any] = {
         "status": "blocked" if blocked_reason else "executed",
