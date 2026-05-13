@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -152,6 +156,20 @@ INTENT_EXAMPLE_PHRASES: dict[str, tuple[str, ...]] = {
         "채용 좀 해야 할 것 같아",
         "요즘 일이 밀려서 사람 더 써야 할 것 같은데 뭐부터 봐",
         "새로 뽑으려면 회사 쪽에서 준비할 거 있어",
+        # 절차 FAQ 자연어
+        "외국인 처음 써보는데 어디서 시작해",
+        "고용허가서 어디서 받아",
+        "내국인 구인 먼저 해야 한다는 게 뭐야",
+        "몇 명까지 쓸 수 있어",
+        "처음에 뭐부터 해야 해",
+        "E-9 처음인데 전체 과정 어떻게 돼",
+        "외국인 직원 나가고 다시 뽑을 수 있어",
+        "취업교육 어디서 받아",
+        "뽑으려면 얼마나 걸려",
+        "계약서 쓸 때 어떻게 해",
+        "표준근로계약서 있어",
+        "비자 신청은 어떻게 해",
+        "고용허가서 받은 다음에",
     ),
     "visa_expiry": (
         "비자 뭐 해야 해",
@@ -241,6 +259,22 @@ INTENT_EXAMPLE_PHRASES: dict[str, tuple[str, ...]] = {
         "방금 말한 근거가 어디서 온 거야",
     ),
 }
+
+POLICY_FAQ_PHRASES: tuple[str, ...] = (
+    "외국인 처음 써보는데 어디서 시작해",
+    "고용허가서 어디서 받아",
+    "내국인 구인 먼저 해야 한다는 게 뭐야",
+    "몇 명까지 쓸 수 있어",
+    "처음에 뭐부터 해야 해",
+    "E-9 처음인데 전체 과정 어떻게 돼",
+    "외국인 직원 나가고 다시 뽑을 수 있어",
+    "취업교육 어디서 받아",
+    "뽑으려면 얼마나 걸려",
+    "계약서 쓸 때 어떻게 해",
+    "표준근로계약서 있어",
+    "비자 신청은 어떻게 해",
+    "고용허가서 받은 다음에",
+)
 
 
 class AgentChatLLMQuery(BaseModel):
@@ -527,6 +561,22 @@ def run_agent_chat_rag_first(
         selected_action_id=context.selected_action_id,
     )
     sources = _selected_sources(daily_briefing.citation_summaries, selected_items, results)
+
+    policy_hits: list[dict[str, Any]] = []
+    policy_answer_text: str | None = None
+    _is_faq = _is_policy_faq(llm_query.query) or _is_policy_faq(message)
+    _policy_eligible = intent not in {"evidence_audit_review", "daily_briefing", "unsupported"}
+    if _policy_eligible and _is_faq:
+        _policy_chunks = _load_workforce_policy_chunks()
+        if _policy_chunks:
+            policy_hits = PolicyRetriever(_policy_chunks).search(
+                llm_query.query,
+                top_k=5,
+                answer_evidence_only=False,
+            )
+            if policy_hits:
+                policy_answer_text = _policy_procedure_answer(policy_hits)
+
     executed_tools = _executed_tools_for_intent(
         intent=intent,
         selected_items=selected_items,
@@ -540,6 +590,8 @@ def run_agent_chat_rag_first(
         selected_items=selected_items,
         selected_actions=actions,
         rag_hits=results,
+        policy_text=policy_answer_text,
+        force_policy=_is_faq,
     )
     answer = planner.grounded_answer(
         message=message,
@@ -615,7 +667,17 @@ def run_agent_chat_rag_first(
             },
         ],
         "actions": [action.model_dump() for action in actions],
-        "sources": [source.model_dump() for source in sources],
+        "sources": [source.model_dump() for source in sources] + [
+            {
+                "citation_id": hit.get("source_id") or hit.get("chunk_id", ""),
+                "title": hit.get("title") or hit.get("metadata", {}).get("title", ""),
+                "source": hit.get("metadata", {}).get("url", ""),
+                "publisher": hit.get("metadata", {}).get("publisher", ""),
+                "source_type": hit.get("metadata", {}).get("source_type", "official_procedure"),
+                "validation_status": "validated",
+            }
+            for hit in policy_hits[:3]
+        ],
         **display_context,
         "detected_intents": [intent],
         "approval_required": daily_briefing.approval_required,
@@ -811,6 +873,50 @@ def _build_operational_chunks(daily_briefing: Any) -> list[dict[str, Any]]:
         )
 
     return chunks
+
+
+_WORKFORCE_POLICY_JSONL = (
+    Path(__file__).resolve().parents[3]
+    / "data-pipeline/processed/chunks/workforce_official_chroma_records.jsonl"
+)
+
+
+def _load_workforce_policy_chunks() -> list[dict[str, Any]]:
+    if not _WORKFORCE_POLICY_JSONL.exists():
+        logger.warning("workforce policy JSONL not found: %s", _WORKFORCE_POLICY_JSONL)
+        return []
+    chunks: list[dict[str, Any]] = []
+    try:
+        with _WORKFORCE_POLICY_JSONL.open("r", encoding="utf-8") as f:
+            for line in f:
+                raw = line.strip()
+                if not raw:
+                    continue
+                record = json.loads(raw)
+                # normalise top-level keys for PolicyRetriever compatibility
+                if "chunk_id" not in record:
+                    record["chunk_id"] = record.get("id", "")
+                if "source_id" not in record:
+                    record["source_id"] = record.get("metadata", {}).get("source_id", "")
+                if "title" not in record:
+                    record["title"] = record.get("metadata", {}).get("title", "")
+                chunks.append(record)
+    except Exception as exc:
+        logger.warning("failed to load workforce policy chunks: %s", exc)
+    return chunks
+
+
+def _policy_procedure_answer(policy_hits: list[dict[str, Any]]) -> str:
+    lines = ["아래는 관련 절차·정책 문서에서 찾은 내용입니다. 담당자 검토 후 진행하세요."]
+    for hit in policy_hits[:3]:
+        title = hit.get("title") or hit.get("metadata", {}).get("title", "")
+        text = str(hit.get("text", ""))
+        publisher = hit.get("metadata", {}).get("publisher", "")
+        excerpt = text[:300].replace("\n", " ")
+        lines.append(f"\n[{title}] ({publisher})")
+        lines.append(f"  {excerpt}...")
+    lines.append("\n외부 발송, 정부 제출, 상태 완료 처리는 수행하지 않았습니다.")
+    return "\n".join(lines)
 
 
 def _build_static_rag_chunks() -> list[dict[str, Any]]:
@@ -1039,6 +1145,8 @@ def _rag_answer(
     selected_items: list[Any],
     selected_actions: list[Any],
     rag_hits: list[dict[str, Any]],
+    policy_text: str | None = None,
+    force_policy: bool = False,
 ) -> str:
     if intent == "evidence_audit_review":
         citation_ids = {
@@ -1056,7 +1164,12 @@ def _rag_answer(
             ]
         )
 
+    if force_policy and policy_text:
+        return policy_text
+
     if not selected_items:
+        if policy_text:
+            return policy_text
         return (
             f"RAG 검색으로 {INTENT_LABELS.get(intent, intent)}를 찾았지만 "
             "오늘 기준 확인된 운영 항목은 없습니다. 외부 발송이나 제출은 수행하지 않았습니다."
@@ -1485,6 +1598,18 @@ def _intent_query_bonus(intent: str, query: str) -> float:
 
 def _normalize_for_phrase(text: str) -> str:
     return "".join(tokenize(text))
+
+
+def _is_policy_faq(query: str) -> bool:
+    normalized_query = _normalize_for_phrase(query)
+    for phrase in POLICY_FAQ_PHRASES:
+        normalized_phrase = _normalize_for_phrase(phrase)
+        if normalized_phrase and (
+            normalized_phrase in normalized_query
+            or normalized_query in normalized_phrase
+        ):
+            return True
+    return False
 
 
 def _exact_phrase_intent(query: str) -> str | None:
