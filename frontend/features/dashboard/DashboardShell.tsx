@@ -9,6 +9,7 @@ import {
   visaExpiries,
 } from "@/features/dashboard/mockData";
 import { DASHBOARD_REFRESH_LABEL } from "@/lib/constants";
+import { DailyBriefingPanel } from "./DailyBriefingPanel";
 
 function riskClass(risk: "low" | "medium" | "high") {
   if (risk === "high") {
@@ -31,6 +32,8 @@ export function DashboardShell() {
           관리자용 MVP입니다. 실제 발송과 제출은 여기서 실행하지 않습니다.
         </p>
       </section>
+
+      <DailyBriefingPanel />
 
       <section className="metric-grid" aria-label="핵심 지표">
         {dashboardMetrics.map((metric) => (
